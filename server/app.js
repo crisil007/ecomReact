@@ -8,7 +8,10 @@ const authRoutes =require('./routes/authRoutes');
 const productRoutes=require('./routes/productRoutes')
 const cartRoutes=require('./routes/cartRoutes')
 const fileUpload=require('./utils/fileUpload')
+const cors=require('cors')
 
+
+app.use(cors())
 app.get('/test', (req, res) => {
     res.status(200).send("Test successful");
 });
