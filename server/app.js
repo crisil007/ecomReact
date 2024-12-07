@@ -9,6 +9,7 @@ const productRoutes=require('./routes/productRoutes')
 const cartRoutes=require('./routes/cartRoutes')
 const fileUpload=require('./utils/fileUpload')
 const cors=require('cors')
+const path = require("path");
 
 
 app.use(cors())
@@ -17,7 +18,9 @@ app.get('/test', (req, res) => {
 });
 
 app.use(express.static( "../client"));
-app.use("/upload",express.static("./upload"));
+// app.use("/upload",express.static("./upload"));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+
 
 
 mongoConnect();

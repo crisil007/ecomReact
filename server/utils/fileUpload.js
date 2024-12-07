@@ -22,7 +22,10 @@ const uploadBase64Images = async (base64Images, directory, altText) => {
             // Write the file to disk
             fs.writeFileSync(filePath, base64Data, { encoding: 'base64' });
 
-            images.push({ url: filePath, alt: altText || 'Product Image' });
+            // Replace backslashes in the URL path with forward slashes
+            const url = filePath.replace(/\\/g, '/');
+
+            images.push({ url, alt: altText || 'Product Image' });
         }
 
         return images; // Return array of uploaded image objects
