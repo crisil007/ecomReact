@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Link } from 'react-router-dom';
 import './style.css'
 
 const ProductList = () => {
@@ -71,7 +72,7 @@ const ProductList = () => {
             style={{
               border: "1px solid #ccc",
               borderRadius: "8px",
-              padding: "16px",
+           
               width: "250px", height:"350px"}}
           >
            
@@ -94,7 +95,18 @@ const ProductList = () => {
 <p><strong>Price:</strong> ${product.price}</p>
 <button onClick={() => addToCart(product._id)}>Add to Cart</button>
 
-           
+<Link to={`/product/${product._id}`} 
+              style={{ 
+                display: 'block', 
+                marginTop: '10px', 
+                textAlign: 'center', 
+                color: '#007bff', 
+                textDecoration: 'none'
+              }}
+            >
+              View Details
+            </Link>
+
           </div>
         ))}
       </div>

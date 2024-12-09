@@ -20,11 +20,21 @@ exports.addProducts = async function (req, res) {
         }
 
         // Validate category
-        const matchedCategory = await category.findOne({ category: req.body.category });
-        if (!matchedCategory) {
-            return res.status(400).send({ success: false, message: "Invalid category" });
-        }
+        console.log("Category from request:", req.body.category);
 
+        // Find the category (case-insensitive search)
+        const matchedCategory = await category.findOne({
+            category: new RegExp(`^${req.body.category}$`, "i")
+        });
+
+        console.log("Matched category:", matchedCategory);
+
+        if (!matchedCategory) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid category: No matching category found in the database.",
+            });
+        }
         // Handle base64-encoded images
         
         let images = [];
@@ -39,7 +49,7 @@ exports.addProducts = async function (req, res) {
             sellerID,
             name: req.body.name,
             price: req.body.price,
-            category: matchedCategory._id,
+            category: matchedCategory.category,
             images,
         });
 
@@ -88,3 +98,19 @@ exports.getProducts = async function(req, res) {
         return res.status(response.statusCode).send(response);
     }
 };
+
+exports.viewSingleProduct=async function (req,res) {
+    try {
+        let id = req.params.id;
+        console.log("id : ", id);
+    
+        let productData = await AddData.findOne({_id : id});
+        console.log("productdata : ", productData);
+    
+        res.status(200).send(productData);
+        return;
+    } catch (error) {
+        console.log("error : ", error);
+        res.status(400).send(error.message ? error.message : error);
+    }
+}
