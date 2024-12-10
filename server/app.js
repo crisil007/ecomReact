@@ -33,7 +33,7 @@ app.use(express.urlencoded({extended : true}));
 app.use(userRoutes);
 app.use(authRoutes);
 app.use('/',productRoutes)
-app.use(cartRoutes)
+app.use(cartRoutes,)
 
 
 app.listen(process.env.PORT, () => {

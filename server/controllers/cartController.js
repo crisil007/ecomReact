@@ -4,7 +4,6 @@ const Cart=require('../db/models/cart');
 const AddData=require('../db/models/product')
 const mongoose=require('mongoose')
 
-
 const authenticate=(req,res,next)=>{
 const token=req.header('Authorization')?.replace('Bearer','').trim();
 console.log("token",token)
