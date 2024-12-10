@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import "./style.css";
+import "./css/style.css"
+import NavBar from "./nav";
+import Footer from "./footer";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -9,6 +11,7 @@ const ProductList = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState(""); // For displaying success/error messages
   const [cart, setCart] = useState([]); // Use an empty array for cart items initially
+  const [quantities, setQuantities] = useState({}); // Store quantities for each product
   const navigate = useNavigate();
   const backendUrl = "http://localhost:3005"; // Replace with your backend URL
 
@@ -39,8 +42,18 @@ const ProductList = () => {
     fetchProducts();
   }, []);
 
+  // Handle quantity change
+  const handleQuantityChange = (productId, quantity) => {
+    setQuantities((prevQuantities) => ({
+      ...prevQuantities,
+      [productId]: quantity,
+    }));
+  };
+
   // Add to Cart function
-  const addToCart = async (productId, quantity = 1) => {
+  const addToCart = async (productId) => {
+    const quantity = quantities[productId] || 1; // Default to 1 if no quantity selected
+
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -65,7 +78,8 @@ const ProductList = () => {
 
       // Update cart and show success message
       setCart(response.data.cart);
-      setMessage(response.data.message || "Item added to cart!");
+      alert("aded to cart")
+      navigate('/cart')
     } catch (error) {
       const status = error.response?.status;
       const errorMessage =
@@ -92,9 +106,11 @@ const ProductList = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
+    <>
+    <NavBar/>
     <div>
       <h1>Products</h1>
-      <button onClick={logout}>Logout</button>
+    
       {message && <div className="message">{message}</div>} {/* Show success/error messages */}
       <div
         className="containerr"
@@ -116,7 +132,15 @@ const ProductList = () => {
               height: "350px",
             }}
           >
-            <div>
+               <Link
+              to={`/product/${product._id}`}
+              style={{
+                display: "block",
+                marginTop: "0px",
+                textAlign: "center",
+                color: "#007bff",
+                textDecoration: "none",
+              }}>
               {product.images && product.images.length > 0 ? (
                 <img
                   src={`http://localhost:3005/${product.images[0].url.replace(
@@ -131,13 +155,28 @@ const ProductList = () => {
                   src="https://via.placeholder.com/150"
                   alt="Placeholder"
                   style={{ width: "100%", borderRadius: "8px" }}
-                />
+            ></img>
               )}
-            </div>
+              </Link>
+        
             <h2>{product.name}</h2>
             <p>
               <strong>Price:</strong> ${product.price}
             </p>
+
+            {/* Quantity input */}
+            {/* <label htmlFor={`quantity-${product._id}`}>Quantity:</label>
+            <input
+              type="number"
+              id={`quantity-${product._id}`}
+              value={quantities[product._id] || 1} // Default to 1 if not set
+              onChange={(e) =>
+                handleQuantityChange(product._id, e.target.value)
+              }
+              min="1"
+              max="10"
+            /> */}
+
             <button
               className="button-a"
               onClick={() => addToCart(product._id)}
@@ -145,22 +184,14 @@ const ProductList = () => {
               Add to Cart
             </button>
 
-            <Link
-              to={`/product/${product._id}`}
-              style={{
-                display: "block",
-                marginTop: "10px",
-                textAlign: "center",
-                color: "#007bff",
-                textDecoration: "none",
-              }}
-            >
-              View Details
-            </Link>
+           
+          
           </div>
         ))}
       </div>
     </div>
+    <Footer/>
+    </>
   );
 };
 

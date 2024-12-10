@@ -37,7 +37,7 @@ const Signup = () => {
 
   return (
     <div>
-      <h2>Create User</h2>
+      <h2>Signup</h2>
       <form onSubmit={handleSubmit}>
      
         <div>
@@ -69,7 +69,7 @@ const Signup = () => {
           />
         </div>
         <div>
-          <button type="submit">Create User</button>
+          <button type="submit">SignUp</button>
         </div>
       </form>
 
