@@ -1,13 +1,10 @@
-/* General Reset */
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
-
-/* Body */
 body {
-  font-family: 'Arial', sans-serif;
   background-color: #f7f7f7;
 }
 
@@ -117,10 +114,11 @@ body {
 .container-a a:hover {
   color: #0056b3;
 }
-/* Product Details Page */
-/* Import Google Fonts for better typography */
 
 
+
+
+/* single view */
 .product-details {
   display: flex;
   flex-direction: column;
@@ -130,7 +128,7 @@ body {
   margin: 0 auto;
 }
 
-/* Carousel Styles */
+
 .carousel {
   position: relative;
   max-width: 600px;
@@ -204,8 +202,6 @@ body {
 .carousel-dot.active {
   background: #555;
 }
-
-/* Product Info Styles */
 .product-info {
   text-align: center;
   margin-top: 20px;
@@ -246,7 +242,7 @@ body {
   margin-bottom: 15px;
 }
 
-/* Add a little spacing around the page */
+
 .loading {
   text-align: center;
   font-size: 1.5rem;

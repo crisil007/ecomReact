@@ -42,17 +42,10 @@ const ProductList = () => {
     fetchProducts();
   }, []);
 
-  // Handle quantity change
-  const handleQuantityChange = (productId, quantity) => {
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [productId]: quantity,
-    }));
-  };
+  
 
   // Add to Cart function
   const addToCart = async (productId) => {
-    const quantity = quantities[productId] || 1; // Default to 1 if no quantity selected
 
     try {
       const token = localStorage.getItem("authToken");
@@ -69,17 +62,16 @@ const ProductList = () => {
         },
       };
 
-      // Include productId and quantity in the payload
       const response = await axios.post(
         `${backendUrl}/addCart`,
-        { productId, quantity },
+        { productId},
         config
       );
-
-      // Update cart and show success message
       setCart(response.data.cart);
       alert("aded to cart")
-      navigate('/cart')
+      navigate('/cart');
+
+
     } catch (error) {
       const status = error.response?.status;
       const errorMessage =
@@ -130,6 +122,7 @@ const ProductList = () => {
               borderRadius: "8px",
               width: "250px",
               height: "350px",
+              textAlign:"center"
             }}
           >
                <Link
@@ -164,28 +157,9 @@ const ProductList = () => {
               <strong>Price:</strong> ${product.price}
             </p>
 
-            {/* Quantity input */}
-            {/* <label htmlFor={`quantity-${product._id}`}>Quantity:</label>
-            <input
-              type="number"
-              id={`quantity-${product._id}`}
-              value={quantities[product._id] || 1} // Default to 1 if not set
-              onChange={(e) =>
-                handleQuantityChange(product._id, e.target.value)
-              }
-              min="1"
-              max="10"
-            /> */}
-
-            <button
-              className="button-a"
-              onClick={() => addToCart(product._id)}
-            >
+            <button className="button-a"  onClick={() => addToCart(product._id)} >
               Add to Cart
             </button>
-
-           
-          
           </div>
         ))}
       </div>

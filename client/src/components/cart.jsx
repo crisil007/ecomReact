@@ -1,56 +1,117 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import "./css/Cart.css";
+import NavBar from "./nav";
+import Footer from "./footer";
 
 const Cart = () => {
-    const [cartItems, setCartItems] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const backendUrl = "http://localhost:3005"; // Replace with your backend URL
 
-    // Fetch cart items on component mount
-    useEffect(() => {
-        const fetchCartItems = async () => {
-            try {
-                setLoading(true);
-                const response = await axios.get('http://localhost:3005/viewCart');
-                setCartItems(response.data);
-            } catch (err) {
-                setError(err.response?.data || 'Failed to fetch cart items');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchCartItems();
-    }, []);
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      const token = localStorage.getItem("authToken");
 
-    // Add item to the cart
-    const addToCart = async (item) => {
-        try {
-            const response = await axios.post('http://localhost:3005/addCart', item, {
-                headers: { 'Content-Type': 'application/json' },
-            });
-            setCartItems([...cartItems, response.data]);
-        } catch (err) {
-            setError(err.response?.data || 'Failed to add item to cart');
+      if (!token) {
+        setError("No token. Please log in.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get(`${backendUrl}/viewCart`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data?.items) {
+          setCartItems(response.data.items);
+        } else {
+          setError("Failed to fetch cart items.");
         }
+      } catch (err) {
+        const status = err.response?.status;
+        if (status === 401) {
+          setError("Session expired. Please log in again.");
+          localStorage.removeItem("authToken");
+        } else {
+          setError("Error fetching cart data. Please try again.");
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
+    fetchCartItems();
+  }, []);
+
+  if (loading) {
     return (
-        <div>
-            <h1>Shopping Cart</h1>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <ul>
-                {cartItems.map((item) => (
-                    <li key={item.id}>
-                        {item.name} - ${item.price} (Quantity: {item.quantity})
-                    </li>
-                ))}
-            </ul>
-            <button onClick={() => addToCart({ id: 1, name: 'Product A', price: 10, quantity: 1 })}>
-                Add Product A
-            </button>
-        </div>
+      <div className="loading-container">
+        <p>Loading...</p>
+      </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <NavBar />
+      <div className="cart-container">
+        <h1>Your Cart</h1>
+        {cartItems.length === 0 ? (
+          <p>Your cart is empty.</p>
+        ) : (
+          <div className="cart-grid">
+            {cartItems.map((item) => (
+                
+        <div key={item.productId._id} className="cart-item">
+        <Link to={`/product/${item.productId._id}`} className="cart-item-image-link">
+          {item.productId.images && item.productId.images.length > 0 ? (
+            <img
+              src={`http://localhost:3005/${item.productId.images[0].url.replace(/\\/g, "/")}`}
+              alt={item.productId.name}
+              className="cart-item-image"
+            />
+          ) : (
+            <img
+              src="https://via.placeholder.com/150"
+              alt="Placeholder"
+              className="cart-item-image"
+            />
+          )}
+        </Link>
+        <div className="cart-item-info">
+          <h2>{item.productId.name}</h2>
+          <p>
+            <strong>Price:</strong> ${item.productId.price}
+          </p>
+          <p>
+            <strong>Quantity:</strong> {item.quantity}
+          </p>
+        </div>
+      </div>
+      
+            
+            ))}
+          </div>
+        )}
+      </div>
+      <Footer />
+    </>
+  );
 };
 
 export default Cart;

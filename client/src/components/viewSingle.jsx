@@ -70,6 +70,8 @@ const ProductDetails = () => {
           &#8250;
         </button>
       </div>
+
+      
       <div className="carousel-dots">
         {product.images &&
           product.images.map((_, index) => (

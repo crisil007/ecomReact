@@ -49,7 +49,7 @@ try{
       return res.status(400).json({ message: 'Product already in cart' });
     }
 
-    cart.items.push({ productId, quantity: 1 });
+    cart.items.push({ productId, });
     await cart.save();
 
     return res.status(200).json({ message: 'Product added to cart', cart });
@@ -66,25 +66,26 @@ catch(error){
 
 // view cart
 
-// Controller to fetch cart items
 exports.getCart = [
-    authenticate,
-    async (req, res) => {
-      try {
-        const userId = req.user.id; 
-        const cart = await Cart.findOne({ userId }).populate('items.productId'); 
-  
-        if (!cart || cart.items.length === 0) {
-          return res.status(200).json({ message: 'Cart is empty', items: [] });
-        }
-  
-        return res.status(200).json({ message: 'Cart fetched successfully', items: cart.items });
-      } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Server error' });
+  authenticate,
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const cart = await Cart.findOne({ userId }).populate("items.productId");
+
+      if (!cart || cart.items.length === 0) {
+        return res.status(200).json({ message: "Cart is empty", items: [] });
       }
+
+      return res
+        .status(200)
+        .json({ message: "Cart fetched successfully", items: cart.items });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Server error" });
     }
-  ];
+  },
+];
   
   
   
