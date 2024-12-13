@@ -7,6 +7,9 @@ import Home from './components/home'
 import ProductDetails from './components/viewSingle';
 import Signin from './components/signin';
 import Cart from './components/cart';
+import SellerHomePage from './components/sellerHome';
+import SellerView from './components/sellerHome';
+import AddProduct from './components/Addproduct';
 
 function App() {
   return (
@@ -20,6 +23,8 @@ function App() {
         <Route path="/home/signin" element={<Signin/>}/>
         <Route path="/signin" element={<Signin/>}/>
         <Route path='/cart' element={<Cart/>}/>
+        <Route path='/seller' element={<SellerView/>}/>
+        <Route path='/add' element={<AddProduct/>}/>
 
       </Routes>
     </Router>

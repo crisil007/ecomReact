@@ -71,7 +71,7 @@ const ProductDetails = () => {
         </button>
       </div>
 
-      
+
       <div className="carousel-dots">
         {product.images &&
           product.images.map((_, index) => (

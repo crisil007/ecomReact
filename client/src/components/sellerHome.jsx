@@ -46,16 +46,15 @@ const ProductList = () => {
 
   // Add to Cart function
   const addToCart = async (productId) => {
+
     try {
-      const tokenData = localStorage.getItem("Data");
-      if (!tokenData) {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
         alert("Please login to add items to the cart.");
         navigate("/signin");
         return;
       }
-      
-      const token = JSON.parse(tokenData).token;  // Assuming token is inside the data object
-  
+
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -65,12 +64,14 @@ const ProductList = () => {
 
       const response = await axios.post(
         `${backendUrl}/addCart`,
-        { productId },
+        { productId},
         config
       );
       setCart(response.data.cart);
-      alert("Added to cart");
+      alert("aded to cart")
       navigate('/cart');
+
+
     } catch (error) {
       const status = error.response?.status;
       const errorMessage =
@@ -78,7 +79,7 @@ const ProductList = () => {
 
       if (status === 401) {
         // Token invalid or expired
-        localStorage.removeItem("Data");
+        localStorage.removeItem("authToken");
         alert("Session expired. Please log in again.");
         navigate("/signin");
       } else if (status === 400) {
@@ -91,8 +92,7 @@ const ProductList = () => {
         setMessage(errorMessage);
       }
     }
-};
-
+  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;

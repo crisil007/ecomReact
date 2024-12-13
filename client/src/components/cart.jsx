@@ -14,21 +14,24 @@ const Cart = () => {
 
   useEffect(() => {
     const fetchCartItems = async () => {
-      const token = localStorage.getItem("authToken");
-
-      if (!token) {
-        setError("No token. Please log in.");
+      const tokenData = localStorage.getItem("Data");
+  
+      if (!tokenData) {
+        setError("No token found. Please log in.");
         setLoading(false);
         return;
       }
-
+  
+      // Extract token from the saved user data
+      const token = JSON.parse(tokenData).token;
+  
       try {
         const response = await axios.get(`${backendUrl}/viewCart`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
+  
         if (response.data?.items) {
           setCartItems(response.data.items);
         } else {
@@ -38,7 +41,8 @@ const Cart = () => {
         const status = err.response?.status;
         if (status === 401) {
           setError("Session expired. Please log in again.");
-          localStorage.removeItem("authToken");
+          localStorage.removeItem("Data");  // Clear user data
+          navigate("/signin");  // Redirect to login
         } else {
           setError("Error fetching cart data. Please try again.");
         }
@@ -46,9 +50,10 @@ const Cart = () => {
         setLoading(false);
       }
     };
-
+  
     fetchCartItems();
   }, []);
+  
 
   if (loading) {
     return (
