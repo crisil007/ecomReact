@@ -113,4 +113,25 @@ exports.viewSingleProduct=async function (req,res) {
         console.log("error : ", error);
         res.status(400).send(error.message ? error.message : error);
     }
-}
+}// 
+
+// Controller method for getting products by seller
+exports.getProductsBySeller = async (req, res) => {
+    try {
+      const sellerId = req.params.sellerId;
+      console.log("Seller ID received:", sellerId); // Log received sellerId
+      const products = await AddData.find({ sellerID: sellerId });
+  
+      if (products.length === 0) {
+        return res.status(404).json({ message: "No products found for this seller." });
+      }
+  
+      return res.status(200).json({ success: true, products });
+    } catch (error) {
+      console.error("Error fetching products:", error); // Log error details
+      return res.status(500).json({ message: "Server error", error });
+    }
+  };
+  
+  
+

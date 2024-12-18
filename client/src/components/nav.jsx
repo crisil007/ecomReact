@@ -7,7 +7,7 @@ export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
+    localStorage.removeItem("Data");
     navigate("/signin"); // Redirect to login after logout
   };
 

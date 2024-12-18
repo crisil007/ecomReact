@@ -39,7 +39,7 @@ const Signin = () => {
         if (user_type === "673d6d56751d8f9abf59f6fc") {
           navigate("/adminpage"); 
         } else if (user_type === "673d6e73751d8f9abf59f6ff") {
-          navigate("/add"); 
+          navigate("/seller"); 
         } else {
           navigate("/home"); 
         }

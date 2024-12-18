@@ -15,11 +15,6 @@ const ProductList = () => {
   const navigate = useNavigate();
   const backendUrl = "http://localhost:3005"; // Replace with your backend URL
 
-  // Logout function
-  const logout = () => {
-    localStorage.removeItem("authToken");
-    navigate("/signin");
-  };
 
   // Fetch products on component mount
   useEffect(() => {

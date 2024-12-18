@@ -11,6 +11,7 @@ router.post('/addProduct/:id',  productController.addProducts);
 
 // Route for fetching products
 router.get('/getProducts', productController.getProducts);
+router.get('/getProducts/:sellerId', productController.getProductsBySeller);
 router.get('/product/:id',productController.viewSingleProduct);
 
 module.exports = router;

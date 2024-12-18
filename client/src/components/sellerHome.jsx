@@ -1,96 +1,90 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import "./css/style.css"
+import "./css/style.css";
 import NavBar from "./nav";
 import Footer from "./footer";
 
-const ProductList = () => {
+
+const SellerHomePage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState(""); // For displaying success/error messages
-  const [cart, setCart] = useState([]); // Use an empty array for cart items initially
-  const [quantities, setQuantities] = useState({}); // Store quantities for each product
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
   const backendUrl = "http://localhost:3005"; // Replace with your backend URL
 
-  // Logout function
-  const logout = () => {
-    localStorage.removeItem("authToken");
-    navigate("/signin");
-  };
-
-  // Fetch products on component mount
+  // Fetch products added by the seller
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchSellerProducts = async () => {
       try {
-        const response = await axios.get(`${backendUrl}/getProducts`);
-        console.log("API Response:", response.data.data);
+        const storedUserData = localStorage.getItem("Data");
+
+        // Check if storedUserData exists and is valid
+        if (!storedUserData) {
+          alert("Please login to access your products.");
+          navigate("/signin");
+          return;
+        }
+
+        const parsedData = JSON.parse(storedUserData);
+        const token = parsedData?.token;
+        const sellerId = parsedData?._id;
+
+        // Ensure sellerId and token are available
+        if (!sellerId || !token) {
+          alert("No valid seller ID or token found. Please login again.");
+          navigate("/signin");
+          return;
+        }
+
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+
+        // Fetch products using sellerId dynamically
+        const response = await axios.get(`${backendUrl}/getProducts/${sellerId}`, config);
+
         if (response.data.success) {
-          setProducts(response.data.data);
+          setProducts(response.data.products || []); // Ensure fallback to empty array
         } else {
           setError(response.data.message);
         }
       } catch (err) {
+        console.error(err);
         setError("Failed to fetch products. Please try again later.");
+        navigate('/add')
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
-  }, []);
+    fetchSellerProducts();
+  }, [navigate]);
 
-  
-
-  // Add to Cart function
-  const addToCart = async (productId) => {
-
+  // Delete product
+  const deleteProduct = async (productId) => {
     try {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        alert("Please login to add items to the cart.");
-        navigate("/signin");
-        return;
-      }
+      const storedUserData = localStorage.getItem("Data");
+      const token = JSON.parse(storedUserData).token;
 
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
       };
 
-      const response = await axios.post(
-        `${backendUrl}/addCart`,
-        { productId},
-        config
-      );
-      setCart(response.data.cart);
-      alert("aded to cart")
-      navigate('/cart');
-
-
-    } catch (error) {
-      const status = error.response?.status;
-      const errorMessage =
-        error.response?.data?.message || "An unexpected error occurred.";
-
-      if (status === 401) {
-        // Token invalid or expired
-        localStorage.removeItem("authToken");
-        alert("Session expired. Please log in again.");
-        navigate("/signin");
-      } else if (status === 400) {
-        setMessage("Invalid request. Please check the product.");
-      } else if (status === 500) {
-        // Server error
-        setMessage("Server error. Please try again later.");
+      const response = await axios.delete(`${backendUrl}/product/${productId}`, config);
+      if (response.data.success) {
+        setProducts(products.filter((product) => product._id !== productId));
+        setMessage("Product deleted successfully.");
       } else {
-        // Other errors
-        setMessage(errorMessage);
+        setMessage(response.data.message);
       }
+    } catch (error) {
+      setMessage("Failed to delete product. Please try again later.");
     }
   };
 
@@ -99,74 +93,70 @@ const ProductList = () => {
 
   return (
     <>
-    <NavBar/>
-    <div>
-      <h1>Products</h1>
-    
-      {message && <div className="message">{message}</div>} {/* Show success/error messages */}
-      <div
-        className="containerr"
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "20px",
-          justifyContent: "center",
-        }}
-      >
-        {products.map((product) => (
-          <div
-            key={product._id}
-            className="container-a"
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: "8px",
-              width: "250px",
-              height: "350px",
-              textAlign:"center"
-            }}
-          >
-               <Link
-              to={`/product/${product._id}`}
-              style={{
-                display: "block",
-                marginTop: "0px",
-                textAlign: "center",
-                color: "#007bff",
-                textDecoration: "none",
-              }}>
-              {product.images && product.images.length > 0 ? (
-                <img
-                  src={`http://localhost:3005/${product.images[0].url.replace(
-                    /\\/g,
-                    "/"
-                  )}`} // Replace backslashes with forward slashes
-                  alt={product.images[0].alt || product.name}
-                  style={{ width: "100%", borderRadius: "5px", height: "200px" }}
-                />
-              ) : (
-                <img
-                  src="https://via.placeholder.com/150"
-                  alt="Placeholder"
-                  style={{ width: "100%", borderRadius: "8px" }}
-            ></img>
-              )}
-              </Link>
-        
-            <h2>{product.name}</h2>
-            <p>
-              <strong>Price:</strong> ${product.price}
-            </p>
+      <NavBar />
+      
+      <div>
+        <h1>Seller Dashboard</h1>
+        {message && <div className="message">{message}</div>}
+        <div
+          className="containerr"
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "20px",
+            justifyContent: "center",
+          }}
+        >
+          {products.length > 0 ? (
+            products.map((product) => (
+              <div
+                key={product._id}
+                className="container-a"
+                style={{
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  width: "250px",
+                  height: "400px",
+                  textAlign: "center",
+                }}
+              >
+                {product.images && product.images.length > 0 ? (
+                  <img
+                    src={`${backendUrl}/${product.images[0].url.replace(/\\/g, "/")}`}
+                    alt={product.images[0].alt || product.name}
+                    style={{ width: "100%", borderRadius: "5px", height: "200px" }}
+                  />
+                ) : (
+                  <img
+                    src="https://via.placeholder.com/150"
+                    alt="Placeholder"
+                    style={{ width: "100%", borderRadius: "8px" }}
+                  />
+                )}
 
-            <button className="button-a"  onClick={() => addToCart(product._id)} >
-              Add to Cart
-            </button>
-          </div>
-        ))}
+                <h2>{product.name}</h2>
+                <p>
+                  <strong>Price:</strong> ${product.price}
+                </p>
+
+                <div style={{ display: "flex", justifyContent: "space-around", marginTop: "10px" }}>
+                  <Link to={`/edit-product/${product._id}`} className="button-a">
+                    Update
+                  </Link>
+                  <button className="button-a" onClick={() => deleteProduct(product._id)}>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div>No products found.</div>
+          )}
+        </div>
       </div>
-    </div>
-    <Footer/>
+      <Footer />
     </>
   );
 };
 
-export default ProductList;
+export default SellerHomePage;

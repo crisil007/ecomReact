@@ -65,7 +65,6 @@ catch(error){
 ];
 
 // view cart
-
 exports.getCart = [
   authenticate,
   async (req, res) => {
@@ -77,15 +76,18 @@ exports.getCart = [
         return res.status(200).json({ message: "Cart is empty", items: [] });
       }
 
+      // Filter out items where productId is null
+      const validItems = cart.items.filter((item) => item.productId !== null);
+
       return res
         .status(200)
-        .json({ message: "Cart fetched successfully", items: cart.items });
+        .json({ message: "Cart fetched successfully", items: validItems });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "Server error" });
     }
   },
 ];
-  
+
   
   

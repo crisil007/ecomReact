@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import './css/AddProductForm.css';  // Updated import for unique CSS
+import { useNavigate } from "react-router-dom";
+
 
 const AddProduct = () => {
   const [productData, setProductData] = useState({
@@ -12,7 +14,7 @@ const AddProduct = () => {
   });
   const [message, setMessage] = useState("");
   const [sellerId, setSellerId] = useState(null);
-
+  const navigate=useNavigate()
   useEffect(() => {
     const storedUserData = localStorage.getItem("Data");
     if (!storedUserData) {
@@ -72,6 +74,8 @@ const AddProduct = () => {
       if (response.ok) {
         const result = await response.json();
         alert(result.message);
+        navigate('/seller')
+        na
       } else {
         const errorResponse = await response.json();
         console.error("Error response:", errorResponse);
@@ -79,7 +83,7 @@ const AddProduct = () => {
       }
     } catch (error) {
       console.error("Error submitting product:", error);
-      alert("An error occurred while submitting the product.");
+    
     }
   };
 
