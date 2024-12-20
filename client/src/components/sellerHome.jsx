@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "./css/style.css";
 import NavBar from "./nav";
 import Footer from "./footer";
+import AddProduct from "./Addproduct";
 
 
 const SellerHomePage = () => {
@@ -94,9 +95,9 @@ const SellerHomePage = () => {
   return (
     <>
       <NavBar />
-      
+      <AddProduct/>
       <div>
-        <h1>Seller Dashboard</h1>
+        <h1 style={{textAlign:"center",margin:"10px"}}>Seller Dashboard</h1>
         {message && <div className="message">{message}</div>}
         <div
           className="containerr"

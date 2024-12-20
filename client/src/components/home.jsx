@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "./css/style.css"
 import NavBar from "./nav";
 import Footer from "./footer";
+import Carousel from "./Carousel";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -95,8 +96,9 @@ const ProductList = () => {
   return (
     <>
     <NavBar/>
+    
     <div>
-      <h1>Products</h1>
+      <h1 style={{textAlign:"center",margin:"50px"}}>Products</h1>
     
       {message && <div className="message">{message}</div>} {/* Show success/error messages */}
       <div
