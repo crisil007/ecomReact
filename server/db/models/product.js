@@ -1,14 +1,11 @@
 const mongoose = require('mongoose');
 
 const AddData = new mongoose.Schema({
-
-    
     sellerID: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "users", // Ensure this matches your users model
         required: true
     },
-    
     name: {
         type: String,
         required: true
@@ -24,8 +21,17 @@ const AddData = new mongoose.Schema({
         }
     ],
     category: {
-        type:String,
-        required:true
+        type: String,
+        required: true
+    },
+    brand: {
+        type: String,
+        required: true
+    },
+    stock: {
+        type: Number,
+        required: true,
+        min: 0
     }
 });
 

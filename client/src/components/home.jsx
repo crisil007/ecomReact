@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import "./css/style.css"
 import NavBar from "./nav";
 import Footer from "./footer";
-import Carousel from "./Carousel";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -78,7 +76,7 @@ const ProductList = () => {
         alert("Session expired. Please log in again.");
         navigate("/signin");
       } else if (status === 400) {
-        setMessage("Invalid request. Please check the product.");
+        setMessage("ALready in cart");
       } else if (status === 500) {
         // Server error
         setMessage("Server error. Please try again later.");

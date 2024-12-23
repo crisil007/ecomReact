@@ -35,13 +35,23 @@ exports.addProducts = async function (req, res) {
                 message: "Invalid category: No matching category found in the database.",
             });
         }
+
         // Handle base64-encoded images
-        
         let images = [];
         if (req.body.images && Array.isArray(req.body.images)) {
             images = await uploadBase64Images(req.body.images, sellerID, req.body.altText);
         } else {
             return res.status(400).send({ success: false, message: "No images provided" });
+        }
+
+        // Validate stock
+        if (typeof req.body.stock !== "number" || req.body.stock < 0) {
+            return res.status(400).send({ success: false, message: "Invalid stock value" });
+        }
+
+        // Validate brand
+        if (!req.body.brand || typeof req.body.brand !== "string") {
+            return res.status(400).send({ success: false, message: "Brand is required and must be a string" });
         }
 
         // Create the new product
@@ -51,6 +61,8 @@ exports.addProducts = async function (req, res) {
             price: req.body.price,
             category: matchedCategory.category,
             images,
+            brand: req.body.brand,
+            stock: req.body.stock,
         });
 
         // Save to database
@@ -65,6 +77,7 @@ exports.addProducts = async function (req, res) {
         return res.status(500).send({ success: false, message: "Product adding failed, please try again." });
     }
 };
+
 
 exports.getProducts = async function(req, res) {
     try {
@@ -134,4 +147,19 @@ exports.getProductsBySeller = async (req, res) => {
   };
   
   
+exports.filterCategoriesAndBrands = async function (req, res) {
+    try {
+        const categories = await category.find({}, { category: 1, _id: 0 });
+        const brands = await AddData.distinct("brand");
+
+        return res.status(200).send({
+            success: true,
+            message: "Categories and brands fetched successfully",
+            data: { categories, brands },
+        });
+    } catch (error) {
+        console.error("Error fetching categories and brands:", error);
+        return res.status(500).send({ success: false, message: "Failed to fetch categories and brands." });
+    }
+};
 

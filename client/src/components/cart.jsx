@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import "./css/Cart.css";
 import NavBar from "./nav";
 import Footer from "./footer";
 
@@ -10,14 +9,14 @@ const Cart = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const backendUrl = "http://localhost:3005"; // Replace with your backend URL
+  const backendUrl = "http://localhost:3005"; 
 
   useEffect(() => {
     const fetchCartItems = async () => {
       const tokenData = localStorage.getItem("Data");
   
       if (!tokenData) {
-        setError("No token found. Please log in.");
+        setError(" Please log in to view cart.");
         setLoading(false);
         return;
       }
