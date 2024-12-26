@@ -81,14 +81,30 @@ exports.addProducts = async function (req, res) {
 
 exports.getProducts = async function(req, res) {
     try {
-        const productData = await AddData.find();
-        console.log("Product Data:", productData);
+        // Extract category and brand from query parameters
+        const { category, brand } = req.query;
+
+        // Create a filter object
+        let filter = {};
+
+        if (category) {
+            filter.category = category; // Filter by category if provided
+        }
+
+        if (brand) {
+            filter.brand = brand; // Filter by brand if provided
+        }
+
+        // Fetch products with the applied filter
+        const productData = await AddData.find(filter);
+
+        console.log("Filtered Product Data:", productData);
 
         if (!productData || productData.length === 0) {
             const response = error_function({
                 success: false,
                 statusCode: 400,
-                message: "No products found",
+                message: "No products found with the specified filters",
             });
             return res.status(response.statusCode).send(response);
         }
@@ -111,6 +127,7 @@ exports.getProducts = async function(req, res) {
         return res.status(response.statusCode).send(response);
     }
 };
+
 
 exports.viewSingleProduct=async function (req,res) {
     try {
@@ -147,19 +164,36 @@ exports.getProductsBySeller = async (req, res) => {
   };
   
   
-exports.filterCategoriesAndBrands = async function (req, res) {
+// Function to fetch categories
+exports.fetchCategories = async function (req, res) {
     try {
         const categories = await category.find({}, { category: 1, _id: 0 });
+
+        return res.status(200).send({
+            success: true,
+            message: "Categories fetched successfully",
+            data: { categories },
+        });
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        return res.status(500).send({ success: false, message: "Failed to fetch categories." });
+    }
+};
+
+// Function to fetch brands
+exports.fetchBrands = async function (req, res) {
+    try {
         const brands = await AddData.distinct("brand");
 
         return res.status(200).send({
             success: true,
-            message: "Categories and brands fetched successfully",
-            data: { categories, brands },
+            message: "Brands fetched successfully",
+            data: { brands },
         });
     } catch (error) {
-        console.error("Error fetching categories and brands:", error);
-        return res.status(500).send({ success: false, message: "Failed to fetch categories and brands." });
+        console.error("Error fetching brands:", error);
+        return res.status(500).send({ success: false, message: "Failed to fetch brands." });
     }
 };
+
 

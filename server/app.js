@@ -7,6 +7,7 @@ const userRoutes = require('./routes/userRoutes');
 const authRoutes =require('./routes/authRoutes');
 const productRoutes=require('./routes/productRoutes')
 const cartRoutes=require('./routes/cartRoutes')
+const wishRoutes=require('./routes/wishRoutes')
 const fileUpload=require('./utils/fileUpload')
 const cors=require('cors')
 const path = require("path");
@@ -32,8 +33,9 @@ app.use(express.urlencoded({extended : true}));
 
 app.use(userRoutes);
 app.use(authRoutes);
-app.use('/',productRoutes)
-app.use(cartRoutes,)
+app.use('/',productRoutes);
+app.use(cartRoutes)
+app.use(wishRoutes)
 
 
 app.listen(process.env.PORT, () => {

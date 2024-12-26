@@ -10,6 +10,7 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [cartAdded, setCartAdded] = useState(false);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -17,6 +18,7 @@ const ProductDetails = () => {
         const response = await axios.get(`http://localhost:3005/product/${id}`);
         setProduct(response.data);
       } catch (error) {
+        setError("Failed to fetch product details. Please try again later.");
         console.error("Error fetching product details:", error);
       }
     };
@@ -24,18 +26,15 @@ const ProductDetails = () => {
     fetchProduct();
   }, [id]);
 
+  if (error) return <div className="error">{error}</div>;
   if (!product) return <div className="loading">Loading...</div>;
 
   const handlePrevSlide = () => {
-    setCurrentSlide((prev) =>
-      prev === 0 ? product.images.length - 1 : prev - 1
-    );
+    setCurrentSlide((prev) => (prev === 0 ? product.images.length - 1 : prev - 1));
   };
 
   const handleNextSlide = () => {
-    setCurrentSlide((prev) =>
-      prev === product.images.length - 1 ? 0 : prev + 1
-    );
+    setCurrentSlide((prev) => (prev === product.images.length - 1 ? 0 : prev + 1));
   };
 
   const goToSlide = (index) => {
@@ -82,12 +81,13 @@ const ProductDetails = () => {
                 className="carousel-inner overflow-hidden rounded-lg"
                 style={{
                   transform: `translateX(-${currentSlide * 100}%)`,
-                  whiteSpace: 'nowrap',
+                  display: "flex",
+                  transition: "transform 0.5s ease-in-out",
                 }}
               >
                 {product.images && product.images.length > 0 ? (
                   product.images.map((image, index) => (
-                    <div key={index} className="inline-block w-full">
+                    <div key={index} className="w-full flex-shrink-0">
                       <img
                         src={`http://localhost:3005/${image.url.replace(/\\/g, "/")}`}
                         alt={image.alt || `Product image ${index + 1}`}
@@ -99,10 +99,18 @@ const ProductDetails = () => {
                   <div className="carousel-item">No images available</div>
                 )}
               </div>
-              <button className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full" onClick={handlePrevSlide}>
+              <button
+                className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full"
+                onClick={handlePrevSlide}
+                aria-label="Previous Slide"
+              >
                 &#8249;
               </button>
-              <button className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full" onClick={handleNextSlide}>
+              <button
+                className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full"
+                onClick={handleNextSlide}
+                aria-label="Next Slide"
+              >
                 &#8250;
               </button>
             </div>

@@ -81,3 +81,143 @@ exports.createuser = async (req, res) => {
         return;
     }
 };
+exports.getAllUsers = async (req, res) => {
+    try {
+        // Fetch all users and populate the 'user_type' field to include user type details
+        const Users = await users.find().populate('user_type', 'user_type'); // Adjust fields to populate as needed
+
+        if (Users.length === 0) {
+            return res.status(404).send({
+                statusCode: 404,
+                message: "No users found",
+            });
+        }
+
+        // Return the fetched users
+        return res.status(200).send({
+            statusCode: 200,
+            message: "Users retrieved successfully",
+            data: Users,
+        });
+    } catch (error) {
+        console.error("Error in getAllUsers:", error);
+
+        return res.status(500).send({
+            statusCode: 500,
+            message: error.message || "Something went wrong",
+        });
+    }
+};
+exports.getUserById = async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        if (!userId) {
+            return res.status(400).send({
+                statusCode: 400,
+                message: "User ID is required",
+            });
+        }
+        const user = await users.findById(userId).populate('user_type', 'user_type'); 
+
+        if (!user) {
+            return res.status(404).send({
+                statusCode: 404,
+                message: "User not found",
+            });
+        }
+
+        return res.status(200).send({
+            statusCode: 200,
+            message: "User retrieved successfully",
+            data: user,
+        });
+    } catch (error) {
+        console.error("Error in getUserById:", error);
+
+        return res.status(500).send({
+            statusCode: 500,
+            message: error.message || "Something went wrong",
+        });
+    }
+};
+
+exports.updateUser = async (req, res) => {
+    try {
+        const userId = req.params.id; // Extract User ID from request parameters
+        const body = req.body; // Updated fields from the request body
+
+        // Validate User ID
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).send({
+                statusCode: 400,
+                message: "Invalid User ID",
+            });
+        }
+
+        // Ensure there is data to update
+        if (!body || Object.keys(body).length === 0) {
+            return res.status(400).send({
+                statusCode: 400,
+                message: "Update data is required",
+            });
+        }
+
+        // Validate email format
+        if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+            return res.status(400).send({
+                statusCode: 400,
+                message: "Invalid email format",
+            });
+        }
+
+        // Validate password length
+        if (body.password && body.password.length < 8) {
+            return res.status(400).send({
+                statusCode: 400,
+                message: "Password must be at least 8 characters long",
+            });
+        }
+
+        // If updating password, hash it
+        if (body.password) {
+            const salt = bcrypt.genSaltSync(10);
+            body.password = bcrypt.hashSync(body.password, salt);
+        }
+
+        // Validate user_type and convert it to ObjectId
+        if (body.user_type) {
+            const userType = await user_type.findOne({ _id: body.user_type });
+            if (!userType) {
+                return res.status(400).send({
+                    statusCode: 400,
+                    message: "Invalid user type",
+                });
+            }
+            body.user_type = userType._id; // Ensure it's the correct ObjectId
+        }
+
+        // Perform the update operation
+ const updatedUser = await users.findByIdAndUpdate(userId, body, { new: true }).populate('user_type', 'user_type'); // Populate user_type for clarity
+
+        if (!updatedUser) {
+            return res.status(404).send({
+                statusCode: 404,
+                message: "User not found",
+            });
+        }
+
+        // Respond with the updated user details
+        return res.status(200).send({
+            statusCode: 200,
+            message: "User updated successfully",
+            data: updatedUser,
+        });
+    } catch (error) {
+        console.error("Error in updateUser:", error);
+        return res.status(500).send({
+            statusCode: 500,
+            message: error.message || "Something went wrong",
+        });
+    }
+};

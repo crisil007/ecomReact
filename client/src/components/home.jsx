@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCartPlus, faHeart } from '@fortawesome/free-solid-svg-icons';
 import NavBar from "./nav";
 import Footer from "./footer";
+import CarouselComponent from "./Carousel";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState(""); // For displaying success/error messages
-  const [cart, setCart] = useState([]); // Use an empty array for cart items initially
-  const [quantities, setQuantities] = useState({}); // Store quantities for each product
+  const [cart, setCart] = useState([]); // Store cart items as an array
+  const [wishlist, setWishlist] = useState([]); // Store wishlist items
   const navigate = useNavigate();
   const backendUrl = "http://localhost:3005"; // Replace with your backend URL
 
-
-  // Fetch products on component mount
+  // Fetch products, cart, and wishlist items on component mount
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(`${backendUrl}/getProducts`);
-        console.log("API Response:", response.data.data);
         if (response.data.success) {
           setProducts(response.data.data);
         } else {
@@ -33,13 +33,61 @@ const ProductList = () => {
       }
     };
 
-    fetchProducts();
-  }, []);
+    const fetchCart = async () => {
+      try {
+        const tokenData = localStorage.getItem("Data");
+        if (tokenData) {
+          const token = JSON.parse(tokenData).token;
+          const config = {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          };
 
-  
+          const response = await axios.get(`${backendUrl}/viewCart`, config);
+          if (response.data.success) {
+            const cartProductIds = response.data.cart.map((item) => item.productId.toString());
+            setCart(cartProductIds); // Extract product IDs
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching cart:", error);
+      }
+    };
+
+    const fetchWishlist = async () => {
+      try {
+        const tokenData = localStorage.getItem("Data");
+        if (tokenData) {
+          const token = JSON.parse(tokenData).token;
+          const config = {
+            headers: {
+              Authorization: `bearer ${token}`,
+            },
+          };
+
+          const response = await axios.get(`${backendUrl}/viewWishlist`, config);
+          if (response.data.success) {
+            setWishlist(response.data.items.map((item) => item.productId._id));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching wishlist:", error);
+      }
+    };
+
+    fetchProducts();
+    fetchCart();
+    fetchWishlist();
+  }, []);
 
   // Add to Cart function
   const addToCart = async (productId) => {
+    if (cart.includes(productId)) {
+      alert("Product is already in the cart.");
+      return;
+    }
+
     try {
       const tokenData = localStorage.getItem("Data");
       if (!tokenData) {
@@ -47,9 +95,8 @@ const ProductList = () => {
         navigate("/signin");
         return;
       }
-      
-      const token = JSON.parse(tokenData).token;  // Assuming token is inside the data object
-  
+
+      const token = JSON.parse(tokenData).token;
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -62,104 +109,166 @@ const ProductList = () => {
         { productId },
         config
       );
-      setCart(response.data.cart);
-      alert("Added to cart");
-      navigate('/cart');
-    } catch (error) {
-      const status = error.response?.status;
-      const errorMessage =
-        error.response?.data?.message || "An unexpected error occurred.";
 
-      if (status === 401) {
-        // Token invalid or expired
-        localStorage.removeItem("Data");
-        alert("Session expired. Please log in again.");
-        navigate("/signin");
-      } else if (status === 400) {
-        setMessage("ALready in cart");
-      } else if (status === 500) {
-        // Server error
-        setMessage("Server error. Please try again later.");
+      if (response.status === 200) {
+        setCart((prevCart) => [...prevCart, productId]);
+        alert("Added to cart");
       } else {
-        // Other errors
-        setMessage(errorMessage);
+        alert(response.data.message || "Failed to add item to cart.");
       }
+    } catch (error) {
+      alert("Error adding item to cart. Please try again.");
     }
-};
+  };
 
+  // Add to Wishlist function
+  const addToWishlist = async (productId) => {
+    try {
+      const tokenData = localStorage.getItem("Data");
+      if (!tokenData) {
+        alert("Please login to add items to the wishlist.");
+        navigate("/signin");
+        return;
+      }
+
+      const token = JSON.parse(tokenData).token;
+      const config = {
+        headers: {
+          Authorization: `bearer ${token}`,
+        },
+      };
+
+      const response = await axios.post(
+        `${backendUrl}/addWishlist`,
+        { productId },
+        config
+      );
+
+      if (response.data.success) {
+        setWishlist((prevWishlist) => [...prevWishlist, productId]);
+        alert("Added to wishlist");
+      } else {
+        alert(response.data.message || " already in wishlist.");
+      }
+    } catch (error) {
+      alert("Error adding item to wishlist. Please try again.");
+    }
+  };
+
+  // Remove from Wishlist function
+  const removeFromWishlist = async (productId) => {
+    try {
+      const tokenData = localStorage.getItem("Data");
+      if (!tokenData) {
+        alert("Please login to remove items from the wishlist.");
+        navigate("/signin");
+        return;
+      }
+
+      const token = JSON.parse(tokenData).token;
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const response = await axios.delete(
+        `${backendUrl}/deleteWishlist/${productId}`,
+        config
+      );
+
+      if (response.data.success) {
+        setWishlist((prevWishlist) =>
+          prevWishlist.filter((item) => item !== productId)
+        );
+        alert("Removed from wishlist");
+      } else {
+        alert(response.data.message || "Failed to remove item from wishlist.");
+      }
+    } catch (error) {
+      alert("Error removing item from wishlist. Please try again.");
+    }
+  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <>
-    <NavBar/>
-    
-    <div>
-      <h1 style={{textAlign:"center",margin:"50px"}}>Products</h1>
-    
-      {message && <div className="message">{message}</div>} {/* Show success/error messages */}
-      <div
-        className="containerr"
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "20px",
-          justifyContent: "center",
-        }}
-      >
-        {products.map((product) => (
-          <div
-            key={product._id}
-            className="container-a"
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: "8px",
-              width: "250px",
-              height: "350px",
-              textAlign:"center"
-            }}
-          >
-               <Link
-              to={`/product/${product._id}`}
-              style={{
-                display: "block",
-                marginTop: "0px",
-                textAlign: "center",
-                color: "#007bff",
-                textDecoration: "none",
-              }}>
-              {product.images && product.images.length > 0 ? (
-                <img
-                  src={`http://localhost:3005/${product.images[0].url.replace(
-                    /\\/g,
-                    "/"
-                  )}`} // Replace backslashes with forward slashes
-                  alt={product.images[0].alt || product.name}
-                  style={{ width: "100%", borderRadius: "5px", height: "200px" }}
-                />
-              ) : (
-                <img
-                  src="https://via.placeholder.com/150"
-                  alt="Placeholder"
-                  style={{ width: "100%", borderRadius: "8px" }}
-            ></img>
-              )}
+      <NavBar />
+      <CarouselComponent />
+      <div className="text-center my-10">
+        <h1 className="text-3xl font-bold">Products</h1>
+        <div className="flex flex-wrap justify-center gap-6 mt-6">
+          {products.map((product) => (
+            <div
+              key={product._id}
+              className="w-60 h-96 p-4 border rounded-lg shadow-lg relative"
+            >
+              <Link
+                to={`/product/${product._id}`}
+                className="block mb-4 text-center text-blue-500 text-lg font-semibold"
+              >
+                {product.images && product.images.length > 0 ? (
+                  <img
+                    src={`http://localhost:3005/${product.images[0].url.replace(
+                      /\\/g,
+                      "/"
+                    )}`}
+                    alt={product.images[0].alt || product.name}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                ) : (
+                  <img
+                    src="https://via.placeholder.com/150"
+                    alt="Placeholder"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                )}
               </Link>
-        
-            <h2>{product.name}</h2>
-            <p>
-              <strong>Price:</strong> ${product.price}
-            </p>
+              <h2 className="text-xl font-medium">{product.name}</h2>
+              <p className="text-lg text-gray-700 mt-2">
+                <strong>Price:</strong> ${product.price}
+              </p>
 
-            <button className="button-a"  onClick={() => addToCart(product._id)} >
-              Add to Cart
-            </button>
-          </div>
-        ))}
+              {/* Cart Button */}
+              {cart.includes(product._id.toString()) ? (
+                <button
+                  onClick={() => navigate("/cart")}
+                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-lg"
+                >
+                  Go to Cart <FontAwesomeIcon icon={faCartPlus} />
+                </button>
+              ) : (
+                <button
+                  onClick={() => addToCart(product._id)}
+                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white py-2 px-4 rounded-lg"
+                >
+                  Add to Cart <FontAwesomeIcon icon={faCartPlus} />
+                </button>
+              )}
+
+              {/* Wishlist Button */}
+              {wishlist.includes(product._id.toString()) ? (
+                <button
+                  onClick={() => removeFromWishlist(product._id)}
+                  className="absolute bottom-4 right-4 bg-red-500 text-white p-2 rounded-full"
+                >
+                  <FontAwesomeIcon icon={faHeart} color="red" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => addToWishlist(product._id)}
+                  className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
+                >
+                  <FontAwesomeIcon icon={faHeart} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-    <Footer/>
+      <Footer />
     </>
   );
 };
