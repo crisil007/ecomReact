@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-
-import NavBar from "./nav";
 import Footer from "./footer";
-import AddProduct from "./Addproduct";
+import SellerNavBar from "./sellernav";
 
 
 const SellerHomePage = () => {
@@ -94,8 +92,8 @@ const SellerHomePage = () => {
 
   return (
     <>
-      <NavBar />
-      <AddProduct/>
+      <SellerNavBar />
+    
       <div>
         <h1 style={{textAlign:"center",margin:"10px"}}>Seller Dashboard</h1>
         {message && <div className="message">{message}</div>}

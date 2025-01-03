@@ -18,5 +18,6 @@ const users=new mongoose.Schema({
            type:mongoose.Schema.Types.ObjectId,
            ref:"user_type"
         },
+        status: { type: String, default: 'active', enum: ['active', 'blocked'] }
 })
 module.exports=mongoose.model("users",users);

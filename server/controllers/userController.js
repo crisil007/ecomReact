@@ -221,3 +221,93 @@ exports.updateUser = async (req, res) => {
         });
     }
 };
+
+
+
+exports.getDashboardStats = async (req, res) => {
+    try {
+        // Count all users
+        const totalUsers = await users.countDocuments();
+
+        // Find user type IDs for 'buyer' and 'seller'
+        const buyerType = await user_type.findOne({ user_type: 'buyer' });
+        const sellerType = await user_type.findOne({ user_type: 'seller' });
+
+        if (!buyerType || !sellerType) {
+            return res.status(400).send(error_function({
+                statusCode: 400,
+                message: "User types not found"
+            }));
+        }
+
+        // Count buyers and sellers
+        const totalBuyers = await users.countDocuments({ user_type: buyerType._id });
+        const totalSellers = await users.countDocuments({ user_type: sellerType._id });
+
+        // Respond with the statistics
+        return res.status(200).send(success_function({
+            statusCode: 200,
+            message: "Dashboard stats retrieved successfully",
+            data: {
+                totalUsers,
+                totalBuyers,
+                totalSellers,
+            }
+        }));
+    } catch (error) {
+        console.error("Error in getDashboardStats:", error);
+        return res.status(500).send(error_function({
+            statusCode: 500,
+            message: error.message || "Something went wrong"
+        }));
+    }
+};
+
+exports.blockUser = async (req, res) => {
+    try {
+        const userId = req.params.id;  // Get user ID from the URL
+        const { action } = req.body;  // The action (block or unblock) from the request body
+
+        // Validate the action
+        if (!['block', 'unblock'].includes(action)) {
+            return res.status(400).send({
+                statusCode: 400,
+                message: "Invalid action. Use 'block' or 'unblock'.",
+            });
+        }
+
+        // Find the user by ID
+        const user = await users.findById(userId);
+
+        // If the user doesn't exist, return an error
+        if (!user) {
+            return res.status(404).send({
+                statusCode: 404,
+                message: "User not found",
+            });
+        }
+
+        // If action is 'block', set the status to 'blocked'
+        if (action === 'block') {
+            user.status = 'blocked';
+        } else if (action === 'unblock') {
+            user.status = 'active';
+        }
+
+        // Save the updated user object
+        await user.save();
+
+        // Return a success response
+        return res.status(200).send({
+            statusCode: 200,
+            message: `User ${action}ed successfully`,
+            data: user,
+        });
+    } catch (error) {
+        console.error("Error in blockUser:", error);
+        return res.status(500).send({
+            statusCode: 500,
+            message: error.message || "Something went wrong",
+        });
+    }
+};

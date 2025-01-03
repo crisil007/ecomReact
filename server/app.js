@@ -8,12 +8,13 @@ const authRoutes =require('./routes/authRoutes');
 const productRoutes=require('./routes/productRoutes')
 const cartRoutes=require('./routes/cartRoutes')
 const wishRoutes=require('./routes/wishRoutes')
+const orderRoutes=require('./routes/orderRoutes')
 const fileUpload=require('./utils/fileUpload')
 const cors=require('cors')
 const path = require("path");
 
 
-app.use(cors())
+app.use(cors({origin: "http://localhost:5173" }))
 app.get('/test', (req, res) => {
     res.status(200).send("Test successful");
 });
@@ -36,6 +37,7 @@ app.use(authRoutes);
 app.use('/',productRoutes);
 app.use(cartRoutes)
 app.use(wishRoutes)
+app.use(orderRoutes)
 
 
 app.listen(process.env.PORT, () => {

@@ -1,97 +1,109 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCartPlus, faHeart } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCartPlus, faHeart } from "@fortawesome/free-solid-svg-icons";
 import NavBar from "./nav";
 import Footer from "./footer";
 import CarouselComponent from "./Carousel";
+import { toast, ToastContainer } from "react-toastify"; // Import both toast and ToastContainer
+
+// Ensure to import the CSS for react-toastify
+import 'react-toastify/dist/ReactToastify.css';
 
 const ProductList = () => {
-  const [products, setProducts] = useState([]);
+  const [newArrivals, setNewArrivals] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [cart, setCart] = useState([]); // Store cart items as an array
-  const [wishlist, setWishlist] = useState([]); // Store wishlist items
+  const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
   const navigate = useNavigate();
-  const backendUrl = "http://localhost:3005"; // Replace with your backend URL
+  const backendUrl = "http://localhost:3005";
 
-  // Fetch products, cart, and wishlist items on component mount
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get(`${backendUrl}/getProducts`);
+  // Fetch Products
+  const fetchProducts = useCallback(async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/getProducts`);
+      if (response.data.success) {
+        setNewArrivals(response.data.data.newArrivals);
+        setAllProducts(response.data.data.allProducts);
+      } else {
+        setError(response.data.message);
+        toast.error(response.data.message); // Show toast on error
+      }
+    } catch (err) {
+      setError("Failed to fetch products. Please try again later.");
+      toast.error("Failed to fetch products. Please try again later."); // Show toast on error
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch Cart
+  const fetchCart = useCallback(async () => {
+    try {
+      const tokenData = localStorage.getItem("Data");
+      if (tokenData) {
+        const token = JSON.parse(tokenData).token;
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+
+        const response = await axios.get(`${backendUrl}/viewCart`, config);
         if (response.data.success) {
-          setProducts(response.data.data);
-        } else {
-          setError(response.data.message);
+          const cartProductIds = response.data.cart.map((item) => item.productId.toString());
+          setCart(cartProductIds);
         }
-      } catch (err) {
-        setError("Failed to fetch products. Please try again later.");
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      toast.error("Error fetching cart. Please try again."); // Show toast on error
+    }
+  }, []);
 
-    const fetchCart = async () => {
-      try {
-        const tokenData = localStorage.getItem("Data");
-        if (tokenData) {
-          const token = JSON.parse(tokenData).token;
-          const config = {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          };
+  // Fetch Wishlist
+  const fetchWishlist = useCallback(async () => {
+    try {
+      const tokenData = localStorage.getItem("Data");
+      if (tokenData) {
+        const token = JSON.parse(tokenData).token;
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
 
-          const response = await axios.get(`${backendUrl}/viewCart`, config);
-          if (response.data.success) {
-            const cartProductIds = response.data.cart.map((item) => item.productId.toString());
-            setCart(cartProductIds); // Extract product IDs
-          }
+        const response = await axios.get(`${backendUrl}/viewWishlist`, config);
+        if (response.data.success) {
+          setWishlist(response.data.items.map((item) => item.productId._id));
         }
-      } catch (error) {
-        console.error("Error fetching cart:", error);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+      toast.error("Error fetching wishlist. Please try again."); // Show toast on error
+    }
+  }, []);
 
-    const fetchWishlist = async () => {
-      try {
-        const tokenData = localStorage.getItem("Data");
-        if (tokenData) {
-          const token = JSON.parse(tokenData).token;
-          const config = {
-            headers: {
-              Authorization: `bearer ${token}`,
-            },
-          };
-
-          const response = await axios.get(`${backendUrl}/viewWishlist`, config);
-          if (response.data.success) {
-            setWishlist(response.data.items.map((item) => item.productId._id));
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching wishlist:", error);
-      }
-    };
-
+  useEffect(() => {
     fetchProducts();
     fetchCart();
     fetchWishlist();
-  }, []);
+  }, [fetchProducts, fetchCart, fetchWishlist]);
 
-  // Add to Cart function
+  // Add to Cart
   const addToCart = async (productId) => {
     if (cart.includes(productId)) {
-      alert("Product is already in the cart.");
+      toast.warn("Product is already in the cart."); // Show warning toast
       return;
     }
 
     try {
       const tokenData = localStorage.getItem("Data");
       if (!tokenData) {
-        alert("Please login to add items to the cart.");
+        toast.info("Please login to add items to the cart."); // Show info toast
         navigate("/signin");
         return;
       }
@@ -104,63 +116,63 @@ const ProductList = () => {
         },
       };
 
-      const response = await axios.post(
-        `${backendUrl}/addCart`,
-        { productId },
-        config
-      );
-
+      const response = await axios.post(`${backendUrl}/addCart`, { productId }, config);
       if (response.status === 200) {
         setCart((prevCart) => [...prevCart, productId]);
-        alert("Added to cart");
+        toast.success("Added to cart"); // Show success toast
       } else {
-        alert(response.data.message || "Failed to add item to cart.");
+        toast.error(response.data.message || "Failed to add item to cart."); // Show error toast
       }
     } catch (error) {
-      alert("Error adding item to cart. Please try again.");
+      toast.error("Error adding item to cart. Please try again."); // Show error toast
     }
   };
 
-  // Add to Wishlist function
+  // Add to Wishlist
   const addToWishlist = async (productId) => {
     try {
       const tokenData = localStorage.getItem("Data");
       if (!tokenData) {
-        alert("Please login to add items to the wishlist.");
+        toast.info("Please login to add items to the wishlist.");
         navigate("/signin");
         return;
       }
-
+  
       const token = JSON.parse(tokenData).token;
       const config = {
         headers: {
-          Authorization: `bearer ${token}`,
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       };
-
-      const response = await axios.post(
-        `${backendUrl}/addWishlist`,
-        { productId },
-        config
-      );
-
+  
+      console.log("Attempting to add product to wishlist. Current Wishlist:", wishlist);
+  
+      const response = await axios.post(`${backendUrl}/addWishlist`, { productId }, config);
+  
       if (response.data.success) {
-        setWishlist((prevWishlist) => [...prevWishlist, productId]);
-        alert("Added to wishlist");
+        // Ensure wishlist state is updated before checking includes
+        const updatedWishlist = [...wishlist, productId];
+        setWishlist(updatedWishlist);
+        
+
       } else {
-        alert(response.data.message || " already in wishlist.");
+        toast.success("Added to wishlist");
       }
     } catch (error) {
-      alert("Error adding item to wishlist. Please try again.");
+      console.error("Error adding item to wishlist:", error);
+      toast.error("Already in wishlist");
     }
   };
+  
+  
 
-  // Remove from Wishlist function
+  // Remove from Wishlist
   const removeFromWishlist = async (productId) => {
     try {
       const tokenData = localStorage.getItem("Data");
       if (!tokenData) {
-        alert("Please login to remove items from the wishlist.");
+        toast.info("Please login to remove items from the wishlist."); // Show info toast
         navigate("/signin");
         return;
       }
@@ -172,23 +184,84 @@ const ProductList = () => {
         },
       };
 
-      const response = await axios.delete(
-        `${backendUrl}/deleteWishlist/${productId}`,
-        config
-      );
-
+      const response = await axios.delete(`${backendUrl}/deleteWishlist/${productId}`, config);
       if (response.data.success) {
-        setWishlist((prevWishlist) =>
-          prevWishlist.filter((item) => item !== productId)
-        );
-        alert("Removed from wishlist");
+        setWishlist((prevWishlist) => prevWishlist.filter((item) => item !== productId));
+        toast.success("Removed from wishlist"); // Show success toast
       } else {
-        alert(response.data.message || "Failed to remove item from wishlist.");
+        toast.error(response.data.message || "Failed to remove item from wishlist."); // Show error toast
       }
     } catch (error) {
-      alert("Error removing item from wishlist. Please try again.");
+      toast.error("Error removing item from wishlist. Please try again."); // Show error toast
     }
   };
+
+  // Render Products Section
+  const renderProductSection = (products, heading) => (
+    <div className="my-10">
+      <h2 className="text-2xl font-bold mb-6 text-center">{heading}</h2>
+      <div className="flex flex-wrap justify-center gap-6">
+        {products.map((product) => (
+          <div key={product._id} className="w-60 h-96 p-4 border rounded-lg shadow-lg relative">
+            <Link
+              to={`/product/${product._id}`}
+              className="block mb-4 text-center text-blue-500 text-lg font-semibold"
+            >
+              {product.images && product.images.length > 0 ? (
+                <img
+                  src={`http://localhost:3005/${product.images[0].url.replace(/\\/g, "/")}`}
+                  alt={product.images[0].alt || product.name}
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+              ) : (
+                <img
+                  src="https://via.placeholder.com/150"
+                  alt="Placeholder"
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+              )}
+            </Link>
+            <h2 className="text-xl font-medium">{product.name}</h2>
+            <p className="text-lg text-gray-700 mt-2">
+              <strong>Price:</strong> ${product.price}
+            </p>
+
+            {cart.includes(product._id.toString()) ? (
+              <button
+                onClick={() => navigate("/cart")}
+                className="absolute bottom-4 left-4 bg-green-500 text-white py-2 px-4 rounded-lg"
+              >
+                Go to Cart <FontAwesomeIcon icon={faCartPlus} />
+              </button>
+            ) : (
+              <button
+                onClick={() => addToCart(product._id)}
+                className="absolute bottom-4 left-4 bg-blue-500 text-white py-2 px-4 rounded-lg"
+              >
+                <FontAwesomeIcon icon={faCartPlus} />
+              </button>
+            )}
+
+            {wishlist.includes(product._id.toString()) ? (
+              <button
+                onClick={() => removeFromWishlist(product._id)}
+                className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
+              >
+                <FontAwesomeIcon icon={faHeart} color="red" />
+              </button>
+            ) : (
+              <button
+                onClick={() => addToWishlist(product._id)}
+                className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
+              >
+                <FontAwesomeIcon icon={faHeart} color="gray" />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -197,78 +270,10 @@ const ProductList = () => {
     <>
       <NavBar />
       <CarouselComponent />
-      <div className="text-center my-10">
-        <h1 className="text-3xl font-bold">Products</h1>
-        <div className="flex flex-wrap justify-center gap-6 mt-6">
-          {products.map((product) => (
-            <div
-              key={product._id}
-              className="w-60 h-96 p-4 border rounded-lg shadow-lg relative"
-            >
-              <Link
-                to={`/product/${product._id}`}
-                className="block mb-4 text-center text-blue-500 text-lg font-semibold"
-              >
-                {product.images && product.images.length > 0 ? (
-                  <img
-                    src={`http://localhost:3005/${product.images[0].url.replace(
-                      /\\/g,
-                      "/"
-                    )}`}
-                    alt={product.images[0].alt || product.name}
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                ) : (
-                  <img
-                    src="https://via.placeholder.com/150"
-                    alt="Placeholder"
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                )}
-              </Link>
-              <h2 className="text-xl font-medium">{product.name}</h2>
-              <p className="text-lg text-gray-700 mt-2">
-                <strong>Price:</strong> ${product.price}
-              </p>
-
-              {/* Cart Button */}
-              {cart.includes(product._id.toString()) ? (
-                <button
-                  onClick={() => navigate("/cart")}
-                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-lg"
-                >
-                  Go to Cart <FontAwesomeIcon icon={faCartPlus} />
-                </button>
-              ) : (
-                <button
-                  onClick={() => addToCart(product._id)}
-                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white py-2 px-4 rounded-lg"
-                >
-                  Add to Cart <FontAwesomeIcon icon={faCartPlus} />
-                </button>
-              )}
-
-              {/* Wishlist Button */}
-              {wishlist.includes(product._id.toString()) ? (
-                <button
-                  onClick={() => removeFromWishlist(product._id)}
-                  className="absolute bottom-4 right-4 bg-red-500 text-white p-2 rounded-full"
-                >
-                  <FontAwesomeIcon icon={faHeart} color="red" />
-                </button>
-              ) : (
-                <button
-                  onClick={() => addToWishlist(product._id)}
-                  className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
-                >
-                  <FontAwesomeIcon icon={faHeart} />
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      {renderProductSection(newArrivals, "New Arrivals")}
+      {renderProductSection(allProducts, "Products")}
       <Footer />
+      <ToastContainer /> {/* Add ToastContainer here */}
     </>
   );
 };

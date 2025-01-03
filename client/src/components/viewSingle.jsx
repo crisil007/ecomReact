@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import NavBar from "./nav";
 
 const ProductDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -58,8 +59,42 @@ const ProductDetails = () => {
     setSelectedSize(size);
   };
 
+  const handleBuyNow = () => {
+    if (!selectedSize) {
+      alert("Please select a size before proceeding.");
+      return;
+    }
+  
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Session expired. Please log in again.");
+      navigate("/signin");
+      return;
+    }
+  
+    try {
+      const decoded = jwt_decode(token);
+  
+    } catch (error) {
+      alert("Invalid session. Please log in again.");
+      navigate("/signin");
+      return;
+    }
+  
+    navigate("/order", {
+      state: {
+        product,
+        selectedSize,
+        quantity,
+      },
+    });
+  };
+
+  const sizes = ['9', '8', '7', '6'];
+
   return (
-    <><NavBar />
+    <>
+      <NavBar />
       <div className="product-details container mx-auto py-6 px-4">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Product Image and Carousel */}
@@ -120,39 +155,16 @@ const ProductDetails = () => {
           <div className="col-span-12 md:col-span-7">
             <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
             <p className="text-lg text-gray-500 mb-4">{product.category}</p>
+            <p className="text-xl font-semibold text-gray-900 mb-4">₹{product.price}</p>
 
-            {/* Pricing and Offers */}
-            <div className="flex items-center space-x-4 mb-4">
-              <span className="text-2xl font-bold text-green-600">₹{product.price}</span>
-              <span className="text-lg text-gray-500 line-through">₹{product.originalPrice}</span>
-              <span className="text-lg text-green-500">{product.discount}% off</span>
-            </div>
-
-            {/* Ratings and Reviews */}
-            <div className="flex items-center space-x-2 mb-4">
-              <span className="bg-green-500 text-white px-2 py-1 rounded text-sm">{product.rating}★</span>
-              <span className="text-gray-600">{product.reviewsCount} ratings and {product.reviews} reviews</span>
-            </div>
-
-            {/* Available Offers */}
+            {/* Size Selection */}
             <div className="mb-4">
-              <h2 className="font-semibold text-lg mb-2">Available Offers</h2>
-              <ul className="list-disc list-inside text-gray-700">
-                <li>5% Unlimited Cashback on Flipkart Axis Bank Credit Card</li>
-                <li>10% Off on HDFC Bank Credit Card EMI Transactions</li>
-                <li>Special Price: Get extra 10% off on select products</li>
-                <li>Combo Offer: Buy 2 items and save an additional ₹50</li>
-              </ul>
-            </div>
-
-            {/* Size Selector */}
-            <div className="mb-4">
-              <h2 className="font-semibold text-lg mb-2">Select Size</h2>
-              <div className="flex items-center space-x-4">
-                {product.sizes && product.sizes.map((size, index) => (
+              <h3 className="text-lg font-semibold mb-2">Select Size</h3>
+              <div className="flex space-x-4">
+                {sizes.map((size) => (
                   <button
-                    key={index}
-                    className={`px-4 py-2 rounded border ${selectedSize === size ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 border-gray-400'}`}
+                    key={size}
+                    className={`py-2 px-4 border rounded-lg ${selectedSize === size ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'}`}
                     onClick={() => handleSizeSelect(size)}
                   >
                     {size}
@@ -161,33 +173,63 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Buttons for Cart and Buy */}
-            <div className="flex items-center space-x-4 mb-6">
-              <button
-                className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-                onClick={handleAddToCart}
-              >
-                Add to Cart
-              </button>
-
-              <button className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
-                Buy Now
-              </button>
+            {/* Quantity */}
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-2">Quantity</h3>
+              <input
+                type="number"
+                value={quantity}
+                onChange={handleQuantityChange}
+                className="w-20 p-2 border rounded-lg"
+                min="1"
+              />
             </div>
 
-            {/* Quantity Selector */}
-            {cartAdded && (
-              <div className="flex items-center space-x-4 mt-4">
-                <label htmlFor="quantity" className="text-gray-700">Quantity:</label>
-                <input
-                  type="number"
-                  id="quantity"
-                  className="w-16 border px-2 py-1 rounded"
-                  value={quantity}
-                  onChange={handleQuantityChange}
-                />
+            {/* Static Offer, Ratings, and EMI Options */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Offers & EMI</h3>
+              <p className="text-gray-700 mb-2">10% off on your first purchase! (Use code FIRSTBUY)</p>
+              <p className="text-gray-700 mb-2">EMI options available starting from ₹250/month.</p>
+              <div className="flex items-center">
+                <span className="text-yellow-500 mr-2">&#9733;</span>
+                <span className="text-lg font-semibold">4.5</span>
+                <span className="text-sm text-gray-500 ml-1">(200 ratings)</span>
               </div>
-            )}
+            </div>
+
+            {/* Specifications Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Specifications</h3>
+              <ul className="list-disc pl-5 text-gray-700">
+                <li>Brand: {product.brand}</li>
+                <li>stock: {product.stock}</li>
+                <li>Color: White</li>
+                <li>Category: {product.category}</li>
+                <li>Weight: {500} gm</li>
+              </ul>
+            </div>
+
+            {/* Delivery & Payment Options Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Delivery & Payment Options</h3>
+              <p className="text-gray-700">Free delivery on orders above ₹500. Estimated delivery time: 2-5 days.</p>
+              <p className="text-gray-700 mb-2">Cash on Delivery (COD) available for select locations.</p>
+              <p className="text-gray-700">Secure payment methods available: Credit/Debit Card, Net Banking, UPI.</p>
+            </div>
+
+            <button
+              onClick={handleAddToCart}
+              className="bg-green-500 text-white py-2 px-4 rounded-lg mr-4"
+            >
+              Add to Cart
+            </button>
+
+            <button
+              onClick={handleBuyNow}
+              className="bg-blue-500 text-white py-2 px-4 rounded-lg"
+            >
+              Buy Now
+            </button>
           </div>
         </div>
       </div>

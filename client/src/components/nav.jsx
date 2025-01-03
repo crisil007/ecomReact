@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import './css/NavBar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCartPlus, faHeart } from '@fortawesome/free-solid-svg-icons';
+import { faCartPlus, faHeart, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 
 export default function NavBar() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState('');  // State to store selected brand
+  const [selectedBrand, setSelectedBrand] = useState('');
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
 
   useEffect(() => {
-    // Check if user data exists in localStorage to determine login status
     const userData = localStorage.getItem("Data");
     setIsLoggedIn(!!userData);
   }, []);
@@ -21,98 +19,99 @@ export default function NavBar() {
   const handleLogout = () => {
     localStorage.removeItem("Data");
     setIsLoggedIn(false);
-    navigate("/signin"); // Redirect to login after logout
+    navigate("/signin");
   };
 
   const handleBrandSelect = (brand) => {
     setSelectedBrand(brand);
-    // Optionally, navigate to filtered products page with the selected brand
     navigate(`/products?brand=${brand}`);
-    setIsBrandDropdownOpen(false); // Close the dropdown after selection
+    setIsBrandDropdownOpen(false);
   };
 
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        {/* Logo */}
-        <div className="logo" onClick={() => navigate("/")}>
-          Shoe<span className="highlight">Mart</span>
-        </div>
-
-        {/* Links */}
-        <div className={`menu ${isMenuOpen ? "open" : ""}`}>
-          <Link to="/mens" className="menu-item">
-            Men's
-          </Link>
-          <Link to="/womens" className="menu-item">
-            Women's
-          </Link>
-          <Link to="/cart" className="menu-item">
-            Cart
-          </Link>
-        </div>
-
-        {/* Brand Dropdown */}
-        <div className="brand-container relative">
-          <button 
-            className="brand-dropdown-btn" 
-            onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
-          >
-            Brand {selectedBrand && `(${selectedBrand})`}
-          </button>
-          {isBrandDropdownOpen && (
-            <div className="dropdown-menu absolute bg-white border rounded shadow-md">
-              <ul className="dropdown-list text-black text-xs">
-                <li 
-                  className="dropdown-item cursor-pointer hover:bg-gray-200 px-4 py-2"
-                  onClick={() => handleBrandSelect("Nike")}
-                >
-                  Nike
-                </li>
-                <li 
-                  className="dropdown-item cursor-pointer hover:bg-gray-200 px-4 py-2"
-                  onClick={() => handleBrandSelect("Adidas")}
-                >
-                  Adidas
-                </li>
-                <li 
-                  className="dropdown-item cursor-pointer hover:bg-gray-200 px-4 py-2"
-                  onClick={() => handleBrandSelect("Puma")}
-                >
-                  Puma
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
-
-        {/* Profile Dropdown */}
-        <div
-          className="profile-container relative"
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+    <nav className="bg-blue-600 text-white  shadow-md w-full z-20 fixed top-0">
+    <div className="max-w-screen-xl mx-auto flex items-center justify-between p-4">
+      {/* Logo */}
+      <div className="text-2xl font-bold cursor-pointer" onClick={() => navigate("/")}>
+        <span className="text-yellow-400">Shoe</span>Mart
+      </div>
+  
+      {/* Menu Items */}
+      <div className="hidden md:flex space-x-6 ml-auto">
+        <Link to="/mens" className="text-lg hover:text-yellow-400">Men's</Link>
+        <Link to="/womens" className="text-lg hover:text-yellow-400">Women's</Link>
+      </div>
+  
+      {/* Brand Dropdown */}
+      <div className="relative hidden md:block">
+        <button 
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-yellow-400"
+          onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
         >
-          <img
-            src="../public/images/icons8.png" // Replace with the actual profile icon path
-            className="profile-icon cursor-pointer"
+          Brands {selectedBrand && `(${selectedBrand})`}
+        </button>
+        {isBrandDropdownOpen && (
+          <div className="absolute bg-white text-black rounded-md shadow-md mt-2 w-40 z-30">
+            <ul>
+              <li 
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleBrandSelect("Nike")}
+              >
+                Nike
+              </li>
+              <li 
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleBrandSelect("Adidas")}
+              >
+                Adidas
+              </li>
+              <li 
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleBrandSelect("Puma")}
+              >
+                Puma
+              </li>
+            </ul>
+          </div>
+        )}
+      </div>
+  
+      {/* Cart, Wishlist, and Profile Icons */}
+      <div className="flex space-x-4 ml-auto">
+        <Link to="/wishlist" className="text-white hover:text-yellow-400">
+          <FontAwesomeIcon icon={faHeart} size="lg" />
+        </Link>
+        <Link to="/cart" className="text-white hover:text-yellow-400">
+          <FontAwesomeIcon icon={faCartPlus} size="lg" />
+        </Link>
+        <div className="relative">
+          <FontAwesomeIcon 
+            icon={faUserCircle} 
+            size="lg" 
+            className="cursor-pointer hover:text-yellow-400"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           />
           {isDropdownOpen && (
-            <div className="dropdown-menu absolute right-0 bg-white border rounded shadow-md">
-              <ul className="dropdown-list text-black text-xs">
+            <div className="absolute right-0 bg-white text-black rounded-md shadow-md mt-2 w-40 z-30">
+              <ul>
                 {isLoggedIn ? (
                   <>
-                    <li className="dropdown-item cursor-pointer hover:bg-gray-200 px-4 py-2" onClick={handleLogout}>
+                    <li 
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={handleLogout}
+                    >
                       Sign Out
                     </li>
-                    <li
-                      className="dropdown-item cursor-pointer hover:bg-gray-200 px-4 py-2"
+                    <li 
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => navigate("/profile")}
                     >
                       My Profile
                     </li>
                   </>
                 ) : (
-                  <li
-                    className="dropdown-item cursor-pointer hover:bg-gray-200 px-4 py-2"
+                  <li 
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => navigate("/signin")}
                   >
                     Login
@@ -122,25 +121,55 @@ export default function NavBar() {
             </div>
           )}
         </div>
-
-        {/* Cart and Wishlist Icons */}
-        <div className="cart-wishlist-icons">
-          <Link to="/cart" className="cart-icon-container">
-            <FontAwesomeIcon icon={faCartPlus} size="lg" />
-          </Link>
-          <Link to="/wishlist" className="wishlist-icon-container">
-            <FontAwesomeIcon icon={faHeart} size="lg" />
-          </Link>
-        </div>
-
-        {/* Mobile Menu Toggle */}
-        <button
-          className="menu-toggle"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          ☰
-        </button>
       </div>
-    </nav>
+  
+      {/* Mobile Menu Toggle */}
+      <button 
+        className="md:hidden text-white text-2xl"
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+      >
+        ☰
+      </button>
+    </div>
+  
+    {/* Mobile Menu */}
+    {isMenuOpen && (
+      <div className="md:hidden bg-blue-600 text-white p-4 space-y-4">
+        <Link to="/mens" className="block hover:text-yellow-400 text-lg">Men's</Link>
+        <Link to="/womens" className="block hover:text-yellow-400 text-lg">Women's</Link>
+        <button 
+          className="block w-full text-left px-4 py-2 bg-blue-600 hover:bg-yellow-400"
+          onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
+        >
+          Brands {selectedBrand && `(${selectedBrand})`}
+        </button>
+        {isBrandDropdownOpen && (
+          <div className="bg-white text-black rounded-md shadow-md mt-2 w-full">
+            <ul>
+              <li 
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleBrandSelect("Nike")}
+              >
+                Nike
+              </li>
+              <li 
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleBrandSelect("Adidas")}
+              >
+                Adidas
+              </li>
+              <li 
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleBrandSelect("Puma")}
+              >
+                Puma
+              </li>
+            </ul>
+          </div>
+        )}
+      </div>
+    )}
+  </nav>
+  
   );
 }

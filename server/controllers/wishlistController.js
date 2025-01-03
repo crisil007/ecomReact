@@ -8,7 +8,8 @@ const error_function = require('../utils/responseHandler').error_function;
 
 // Authentication middleware
 const authenticate = (req, res, next) => {
-  const token = req.header('Authorization')?.replace('bearer', '').trim();
+  const token = req.header('Authorization')?.replace(/^bearer\s+/i, ''); // handles both 'bearer' and 'Bearer'
+
 
   if (!token) {
     return res.status(401).json({ message: "No token found. Please login." });

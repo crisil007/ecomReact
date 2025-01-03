@@ -79,7 +79,7 @@ exports.addProducts = async function (req, res) {
 };
 
 
-exports.getProducts = async function(req, res) {
+exports.getProducts = async function (req, res) {
     try {
         // Extract category and brand from query parameters
         const { category, brand } = req.query;
@@ -95,12 +95,19 @@ exports.getProducts = async function(req, res) {
             filter.brand = brand; // Filter by brand if provided
         }
 
-        // Fetch products with the applied filter
-        const productData = await AddData.find(filter);
+        // Fetch the latest 10 products (New Arrivals)
+        const latestProducts = await AddData.find(filter)
+            .sort({ createdAt: -1 }) // Sort by creation date in descending order
+            .limit(10); // Limit to 10 records
 
-        console.log("Filtered Product Data:", productData);
+        // Fetch all other products that match the filters
+        const allProducts = await AddData.find(filter)
+            .sort({ createdAt: -1 }); // Sort by creation date in descending order
 
-        if (!productData || productData.length === 0) {
+        console.log("Filtered Latest Products:", latestProducts);
+        console.log("Filtered All Products:", allProducts);
+
+        if (!latestProducts.length && !allProducts.length) {
             const response = error_function({
                 success: false,
                 statusCode: 400,
@@ -109,12 +116,17 @@ exports.getProducts = async function(req, res) {
             return res.status(response.statusCode).send(response);
         }
 
+        // Create response structure
         const response = success_function({
             success: true,
             statusCode: 200,
-            message: "Fetching successful",
-            data: productData,
+            message: "Products fetched successfully",
+            data: {
+                newArrivals: latestProducts,
+                allProducts: allProducts,
+            },
         });
+
         return res.status(response.statusCode).send(response);
 
     } catch (error) {
@@ -127,6 +139,7 @@ exports.getProducts = async function(req, res) {
         return res.status(response.statusCode).send(response);
     }
 };
+
 
 
 exports.viewSingleProduct=async function (req,res) {
