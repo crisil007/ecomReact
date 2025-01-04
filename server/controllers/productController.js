@@ -78,14 +78,13 @@ exports.addProducts = async function (req, res) {
     }
 };
 
-
 exports.getProducts = async function (req, res) {
     try {
         // Extract category and brand from query parameters
         const { category, brand } = req.query;
 
         // Create a filter object
-        let filter = {};
+        let filter = { status: { $ne: "blocked" } }; // Exclude blocked products
 
         if (category) {
             filter.category = category; // Filter by category if provided
@@ -139,6 +138,7 @@ exports.getProducts = async function (req, res) {
         return res.status(response.statusCode).send(response);
     }
 };
+
 
 
 
@@ -210,3 +210,36 @@ exports.fetchBrands = async function (req, res) {
 };
 
 
+exports.blockproducts = async (req, res) => {
+    try {
+        const productId = req.params.id; // Extract product ID from request parameters
+        const product = await AddData.findById(productId);
+
+        if (!product) {
+            return res.status(404).send({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        // Toggle the product's status
+        const newStatus = product.status === "active" ? "blocked" : "active";
+        product.status = newStatus;
+
+        // Save the updated product
+        await product.save();
+
+        return res.status(200).send({
+            success: true,
+            message: `Product has been ${newStatus === "active" ? "unblocked" : "blocked"} successfully`,
+            data: product
+        });
+    } catch (error) {
+        console.error("Error toggling product status:", error);
+        return res.status(500).send({
+            success: false,
+            message: "Failed to toggle product status",
+            error
+        });
+    }
+};

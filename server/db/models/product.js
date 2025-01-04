@@ -1,9 +1,10 @@
-const mongoose = require('mongoose');
 
+const mongoose=require('mongoose')
 const AddData = new mongoose.Schema({
+    
     sellerID: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "users", // Ensure this matches your users model
+        ref: "users",
         required: true
     },
     name: {
@@ -32,6 +33,11 @@ const AddData = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0
+    },
+    status: {
+        type: String,
+        enum: ["active", "blocked"],
+        default: "active" // Default status is active
     }
 });
 

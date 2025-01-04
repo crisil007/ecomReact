@@ -44,7 +44,7 @@ const UserList = () => {
                                 <td className="py-4 px-6 text-center">{user.user_type ? user.user_type.user_type : 'N/A'}</td>
                                 <td className="py-4 px-6 text-center">{user.email}</td>
                                 <td className="py-4 px-6 text-center">
-                                    <Link to={`/user/${user._id}`}>
+                                    <Link to={`/singleview/${user._id}`}>
                                         <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none">View</button>
                                     </Link>
                                 </td>

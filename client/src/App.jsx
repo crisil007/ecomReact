@@ -13,6 +13,7 @@ import Wishlist from './components/wishlist';
 import OrderPage from './components/order';
 import ProductList from './components/sellermain';
 import UserList from './components/admin/viewUsers';
+import UserView from './components/admin/viewSingleuser';
 // src/index.js or src/App.js
 import AdminDashboard from './components/admin/adminHome';
 import './styles/tailwind.css';
@@ -41,8 +42,9 @@ function App() {
 
 
 
-
+{/* admin */}
         <Route path='/admin' element={<AdminDashboard/>}/>
+        <Route path='/singleview/:id' element={<UserView/>}/>
         
 
       </Routes>

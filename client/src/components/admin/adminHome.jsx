@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import AdminNavBar from "./adminNav";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -34,7 +35,9 @@ const Dashboard = () => {
   }
 
   return (
+
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
+        <AdminNavBar/>
       <h1 className="text-4xl font-bold text-gray-800 mb-8">Admin Dashboard</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-5xl">

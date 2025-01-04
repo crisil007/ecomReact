@@ -45,7 +45,6 @@ const SellerHomePage = () => {
 
         // Fetch products using sellerId dynamically
         const response = await axios.get(`${backendUrl}/getProducts/${sellerId}`, config);
-
         if (response.data.success) {
           setProducts(response.data.products || []); // Ensure fallback to empty array
         } else {
