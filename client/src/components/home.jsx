@@ -103,7 +103,7 @@ const ProductList = () => {
     try {
       const tokenData = localStorage.getItem("Data");
       if (!tokenData) {
-        toast.info("Please login to add items to the cart."); // Show info toast
+        alert("Please login to add items to the cart."); // Show info toast
         navigate("/signin");
         return;
       }
@@ -133,7 +133,7 @@ const ProductList = () => {
     try {
       const tokenData = localStorage.getItem("Data");
       if (!tokenData) {
-        toast.info("Please login to add items to the wishlist.");
+        alert("Please login to add items to the wishlist.");
         navigate("/signin");
         return;
       }

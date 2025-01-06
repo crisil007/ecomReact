@@ -21,5 +21,5 @@ router.get('/getProducts/:sellerId', productController.getProductsBySeller);
 router.get('/product/:id',productController.viewSingleProduct);
 router.get('/getProducts/brands', productController.fetchBrands);
 
-router.patch("/products/:id/status",setaccessControl('3') , productController.blockproducts);
+router.patch("/products/:id/status" , productController.blockproducts);
 module.exports = router;
