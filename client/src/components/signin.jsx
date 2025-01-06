@@ -60,7 +60,7 @@ const Signin = () => {
         {/* Left Side (Image Section) */}
         <div className="w-1/2 bg-blue-600 text-white flex flex-col items-center justify-center p-8">
           <div className="text-center mb-8">
-            <img src="/path/to/your/image.png" alt="Graphic" className="w-32 h-32 mb-4" />
+            <img src="./images/log.jpg.jpg" alt="Graphic" className="w-30 h-60 mb-4" />
             <h1 className="text-3xl font-bold">ShoeMart</h1>
             <p className="mt-2">Get access to your Orders, Wishlist, and Recommendations</p>
           </div>

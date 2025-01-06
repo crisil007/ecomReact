@@ -70,22 +70,27 @@ exports.getWishlist = [
   async (req, res) => {
     try {
       const userId = req.user.id;
+      const wishlist = await Wishlist.findOne({ userId }).populate(
+        "fav.productId"
+      );
 
-      const wishlist = await Wishlist.findOne({ userId }).populate('fav.productId');
       if (!wishlist || wishlist.fav.length === 0) {
-        return res.status(200).json({ message: 'Wishlist is empty.', items: [] });
+        return res.status(200).json({ message: "Wishlist is empty.", items: [] });
       }
 
       return res.status(200).json({
-        message: 'Wishlist fetched successfully.',
+        message: "Wishlist fetched successfully.",
         items: wishlist.fav,
       });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Server error.' });
+      console.error("Error fetching wishlist:", error);
+      return res
+        .status(500)
+        .json({ message: "Server error. Please try again later." });
     }
   },
 ];
+
 
 // Remove from Wishlist
 exports.removeFromWishlist = [

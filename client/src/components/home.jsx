@@ -65,27 +65,39 @@ const ProductList = () => {
   }, []);
 
   // Fetch Wishlist
-  const fetchWishlist = useCallback(async () => {
-    try {
-      const tokenData = localStorage.getItem("Data");
-      if (tokenData) {
-        const token = JSON.parse(tokenData).token;
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
+// Fetch Wishlist
+const fetchWishlist = useCallback(async () => {
+  try {
+    const tokenData = localStorage.getItem("Data");
+    if (tokenData) {
+      const token = JSON.parse(tokenData).token;
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
 
-        const response = await axios.get(`${backendUrl}/viewWishlist`, config);
-        if (response.data.success) {
-          setWishlist(response.data.items.map((item) => item.productId._id));
-        }
+      const response = await axios.get(`${backendUrl}/viewWishlist`, config);
+
+      if (response.status === 200 && response.data.items) {
+        // Map and set wishlist product IDs
+        setWishlist(response.data.items.map((item) => item.productId._id));
+        
+      } else {
+        setWishlist([]);
+        toast.info(response.data.message || "Wishlist is empty.");
       }
-    } catch (error) {
-      console.error("Error fetching wishlist:", error);
-      toast.error("Error fetching wishlist. Please try again."); // Show toast on error
+    } else {
+      setWishlist([]);
+      toast.info("Please login to view your wishlist.");
     }
-  }, []);
+  } catch (error) {
+    console.error("Error fetching wishlist:", error);
+    setWishlist([]);
+    toast.error("Error fetching wishlist. Please try again.");
+  }
+}, []);
+
 
   useEffect(() => {
     fetchProducts();
