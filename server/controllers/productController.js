@@ -193,21 +193,36 @@ exports.fetchCategories = async function (req, res) {
     }
 };
 
-// Function to fetch brands
+// Function to fetch products for a specific brand
+// Updated fetchBrands function in the backend
 exports.fetchBrands = async function (req, res) {
     try {
-        const brands = await AddData.distinct("brand");
+        const { brand } = req.query;
 
-        return res.status(200).send({
-            success: true,
-            message: "Brands fetched successfully",
-            data: { brands },
-        });
+        if (brand) {
+            // Fetch products of a specific brand
+            const products = await AddData.find({ brand });
+            return res.status(200).send({
+                success: true,
+                message: "Products fetched successfully",
+                data: { products },
+            });
+        } else {
+            // Fetch all unique brands
+            const brands = await AddData.distinct("brand");
+            return res.status(200).send({
+                success: true,
+                message: "Brands fetched successfully",
+                data: { brands },
+            });
+        }
     } catch (error) {
-        console.error("Error fetching brands:", error);
-        return res.status(500).send({ success: false, message: "Failed to fetch brands." });
+        console.error("Error fetching brands or products:", error);
+        return res.status(500).send({ success: false, message: "Failed to fetch data." });
     }
 };
+
+
 
 
 exports.blockproducts = async (req, res) => {

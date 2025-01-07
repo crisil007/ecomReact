@@ -19,7 +19,8 @@ router.post('/addProduct/:id',  productController.addProducts);
 router.get('/getProducts', productController.getProducts);
 router.get('/getProducts/:sellerId', productController.getProductsBySeller);
 router.get('/product/:id',productController.viewSingleProduct);
-router.get('/getProducts/brands', productController.fetchBrands);
+
 
 router.patch("/products/:id/status" , productController.blockproducts);
+router.get("/brands",productController.fetchBrands)
 module.exports = router;
