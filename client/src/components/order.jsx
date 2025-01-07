@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
-import jwt_decode from "jwt-decode"; // Correct import
+import jwt_decode from "jwt-decode";
+import "react-toastify/dist/ReactToastify.css"; // Ensure this is imported
 
 const OrderPage = () => {
   const location = useLocation();
@@ -12,28 +13,35 @@ const OrderPage = () => {
   const [address, setAddress] = useState("");
   const [total, setTotal] = useState(0);
 
-  useEffect(() => {
-    // Validate the token on page load
+  // Validate token function
+  const validateToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("No token found. Please log in.");
+      toast.error("No token found. Please log in.");
       navigate("/signin");
-      return;
+      return false;
     }
 
     try {
-      const decoded = jwt_decode(token); // Use `jwt_decode` correctly
+      const decoded = jwt_decode(token);
       const currentTime = Date.now() / 1000;
-
       if (decoded.exp < currentTime) {
-        alert("Your session has expired. Please log in again.");
+        toast.error("Session expired. Please log in again.");
         navigate("/signin");
+        return false;
       }
     } catch (error) {
       console.error("Invalid token:", error);
-      alert("Invalid token. Please log in again.");
+      toast.error("Invalid session. Please log in again.");
       navigate("/signin");
+      return false;
     }
+
+    return true;
+  };
+
+  useEffect(() => {
+    if (!validateToken()) return;
   }, [navigate]);
 
   useEffect(() => {
@@ -52,9 +60,10 @@ const OrderPage = () => {
     }
 
     const token = localStorage.getItem("token");
+    if (!validateToken()) return;
 
     try {
-      const response = await axios.post(
+      await axios.post(
         "http://localhost:3005/createOrder",
         {
           products: [
@@ -73,14 +82,18 @@ const OrderPage = () => {
       );
 
       toast.success("Order placed successfully!");
-      navigate("/home");
+
+      // Delay navigation to allow toast to show
+      setTimeout(() => {
+        navigate("/home");
+      }, 2000); // 2-second delay
     } catch (error) {
       toast.error(error.response?.data?.message || "Error placing order");
     }
   };
 
   if (!product) {
-    return <div>Loading...</div>;
+    return <div className="loading">Loading...</div>;
   }
 
   return (
@@ -120,12 +133,13 @@ const OrderPage = () => {
           <button
             className="bg-green-500 text-white py-2 px-4 rounded-md mt-4 w-full"
             onClick={handlePlaceOrder}
+            aria-label="Place Order"
           >
             Place Order
           </button>
         </div>
       </div>
-      <ToastContainer />
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };

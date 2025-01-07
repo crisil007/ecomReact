@@ -23,7 +23,7 @@ const Signup = () => {
 
       if (response.status === 200) {
         alert('User created successfully!');
-        navigate('/home')
+        navigate('/signin')
         setErrorMessage('');
       } else {
         setSuccessMessage('');

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import jwt_decode from "jwt-decode";
+
 import NavBar from "./nav";
 
 const ProductDetails = () => {
@@ -66,22 +68,40 @@ const ProductDetails = () => {
     }
   
     const token = localStorage.getItem("token");
+    console.log("Token retrieved from localStorage:", token); // Log the token
+  
     if (!token) {
       alert("Session expired. Please log in again.");
       navigate("/signin");
       return;
     }
   
+    const isValidJWT = (token) => token && token.split(".").length === 3;
+    if (!isValidJWT(token)) {
+      alert("Invalid session token. Please log in again.");
+      navigate("/signin");
+      return;
+    }
+  
     try {
       const decoded = jwt_decode(token);
+      console.log("Decoded Token:", decoded); // Log the decoded token
   
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (decoded.exp && decoded.exp < currentTime) {
+        alert("Your session has expired. Please log in again.");
+        navigate("/signin");
+        return;
+      }
     } catch (error) {
+      console.error("Error decoding token:", error.message); // Log the error
       alert("Invalid session. Please log in again.");
       navigate("/signin");
       return;
     }
   
-    navigate("/order", {
+    // Navigate to /order/:id with the product id
+    navigate(`/order/${product.id}`, {
       state: {
         product,
         selectedSize,
@@ -89,6 +109,9 @@ const ProductDetails = () => {
       },
     });
   };
+  
+  
+  
 
   const sizes = ['9', '8', '7', '6'];
 
