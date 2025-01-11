@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken');
 const Product = require('../db/models/product');
 const success_function = require('../utils/responseHandler').success_function;
 const error_function = require('../utils/responseHandler').error_function;
+const  sendEmail= require('../utils/send-email').sendEmail
+const orderPlaced =require('../utils/email-templates/orderplaced').orderPlaced
+const users=require('../db/models/users')
 
 const authenticate = (req, res, next) => {
     const authorizationHeader = req.header('Authorization');
@@ -25,6 +28,7 @@ const authenticate = (req, res, next) => {
         return res.status(401).json({ message: 'Invalid or expired token.' });
     }
 };
+// Adjust the path as needed
 
 exports.createOrder = [
     authenticate,
@@ -85,6 +89,22 @@ exports.createOrder = [
                     { new: true }
                 );
             }
+
+            // Fetch the user's email
+            const user = await users.findById(userId); // Ensure `User` is imported correctly
+            const userEmail = user.email;
+
+            // Prepare the email content
+            const emailContent = await orderPlaced(user.name, products);
+
+            // Send the email
+            sendEmail(userEmail, 'Order Confirmation - Your Order is Placed!', emailContent)
+                .then(() => {
+                    console.log('Order confirmation email sent successfully');
+                })
+                .catch((err) => {
+                    console.error('Error sending order confirmation email:', err);
+                });
 
             res.status(201).json({ message: 'Order created successfully', order: savedOrder });
         } catch (error) {

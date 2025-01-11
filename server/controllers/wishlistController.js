@@ -70,6 +70,8 @@ exports.getWishlist = [
   async (req, res) => {
     try {
       const userId = req.user.id;
+
+      // Fetch the user's wishlist and populate the productId field
       const wishlist = await Wishlist.findOne({ userId }).populate(
         "fav.productId"
       );
@@ -78,9 +80,15 @@ exports.getWishlist = [
         return res.status(200).json({ message: "Wishlist is empty.", items: [] });
       }
 
+      // Filter out items where productId is null or product status is "blocked"
+      const validItems = wishlist.fav.filter(
+        (item) =>
+          item.productId !== null && item.productId.status === "active"
+      );
+
       return res.status(200).json({
         message: "Wishlist fetched successfully.",
-        items: wishlist.fav,
+        items: validItems,
       });
     } catch (error) {
       console.error("Error fetching wishlist:", error);
@@ -90,6 +98,7 @@ exports.getWishlist = [
     }
   },
 ];
+
 
 
 // Remove from Wishlist

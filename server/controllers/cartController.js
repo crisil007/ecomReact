@@ -70,32 +70,41 @@ exports.getCart = [
   async (req, res) => {
     try {
       const userId = req.user.id;
+
+      // Fetch the user's cart and populate the productId field
       const cart = await Cart.findOne({ userId }).populate("items.productId");
 
       if (!cart || cart.items.length === 0) {
         return res.status(200).json({ message: "Cart is empty", items: [] });
       }
 
-      // Filter out items where productId is null
-      const validItems = cart.items.filter((item) => item.productId !== null);
+      // Filter out items where productId is null or product status is "blocked"
+      const validItems = cart.items.filter(
+        (item) =>
+          item.productId !== null && item.productId.status === "active"
+      );
 
-      return res
-        .status(200)
-        .json({ message: "Cart fetched successfully", items: validItems });
+      return res.status(200).json({
+        message: "Cart fetched successfully",
+        items: validItems,
+      });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Server error" });
+      console.error("Error fetching cart:", error);
+      return res.status(500).json({ message: "Server error", error });
     }
   },
 ];
 
-exports.deleteCart = [authenticate,async  (req, res)=> {
+
+exports.deleteCart = [authenticate, async (req, res) => {
   try {
     console.log('Request Params:', req.params);
-     console.log('Request User:', req.user);
-    const userId = req.user.id; 
-    const productId =new mongoose.Types.ObjectId(req.params.id); // Convert string to ObjectId
-    console.log('User ID:', userId); console.log('Product ID:');
+    console.log('Request User:', req.user);
+    const userId = req.user.id;
+    const productId = new mongoose.Types.ObjectId(req.params.id); // Convert string to ObjectId
+    console.log('User ID:', userId); 
+    console.log('Product ID:', productId);
+
     if (!userId || !productId) {
       const response = error_function({
         statusCode: 400,
@@ -134,6 +143,7 @@ exports.deleteCart = [authenticate,async  (req, res)=> {
     res.status(response.statusCode).send(response);
   }
 }];
+
 exports.updateCartQuantity = [
   authenticate,
   async (req, res) => {

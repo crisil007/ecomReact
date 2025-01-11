@@ -41,30 +41,37 @@ const ProductList = () => {
   }, []);
 
   // Fetch Cart
-  const fetchCart = useCallback(async () => {
-    try {
-      const tokenData = localStorage.getItem("Data");
-      if (tokenData) {
-        const token = JSON.parse(tokenData).token;
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
+ // Fetch Cart
+// Fetch Cart
+const fetchCart = useCallback(async () => {
+  try {
+    const tokenData = localStorage.getItem("Data");
+    if (tokenData) {
+      const token = JSON.parse(tokenData).token;
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
 
-        const response = await axios.get(`${backendUrl}/viewCart`, config);
-        if (response.data.success) {
-          const cartProductIds = response.data.cart.map((item) => item.productId.toString());
-          setCart(cartProductIds);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-      toast.error("Error fetching cart. Please try again."); // Show toast on error
+      const response = await axios.get(`${backendUrl}/viewCart`, config);
+
+      if (response.data.success) {
+        const filteredCart = response.data.cart.filter(
+          (item) => item.productId && !item.productId.isBlocked // Ensure valid productId and exclude blocked products
+        );
+        const cartProductIds = filteredCart.map((item) => item.productId._id.toString());
+        setCart(cartProductIds);
+        }  // } else {
+      //   toast.error(response.data.message || "Failed to fetch cart.");
+      // }
     }
-  }, []);
+  } catch (error) {
+    console.error("Error fetching cart:", error);
+    toast.error("Error fetching cart. Please try again.");
+  }
+}, []);
 
-  // Fetch Wishlist
 // Fetch Wishlist
 const fetchWishlist = useCallback(async () => {
   try {
@@ -80,9 +87,11 @@ const fetchWishlist = useCallback(async () => {
       const response = await axios.get(`${backendUrl}/viewWishlist`, config);
 
       if (response.status === 200 && response.data.items) {
-        // Map and set wishlist product IDs
-        setWishlist(response.data.items.map((item) => item.productId._id));
-        
+        // Exclude blocked products
+        const wishlistProductIds = response.data.items
+          .filter((item) => !item.productId.isBlocked) // Exclude blocked products
+          .map((item) => item.productId._id);
+        setWishlist(wishlistProductIds);
       } else {
         setWishlist([]);
         toast.info(response.data.message || "Wishlist is empty.");
@@ -97,6 +106,7 @@ const fetchWishlist = useCallback(async () => {
     toast.error("Error fetching wishlist. Please try again.");
   }
 }, []);
+
 
 
   useEffect(() => {
@@ -213,67 +223,70 @@ const fetchWishlist = useCallback(async () => {
     <div className="my-10">
       <h2 className="text-2xl font-bold mb-6 text-center">{heading}</h2>
       <div className="flex flex-wrap justify-center gap-6">
-        {products.map((product) => (
-          <div key={product._id} className="w-60 h-96 p-4 border rounded-lg shadow-lg relative">
-            <Link
-              to={`/product/${product._id}`}
-              className="block mb-4 text-center text-blue-500 text-lg font-semibold"
-            >
-              {product.images && product.images.length > 0 ? (
-                <img
-                  src={`http://localhost:3005/${product.images[0].url.replace(/\\/g, "/")}`}
-                  alt={product.images[0].alt || product.name}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
+        {products
+          .filter((product) => !product.isBlocked) // Exclude blocked products
+          .map((product) => (
+            <div key={product._id} className="w-60 h-96 p-4 border rounded-lg shadow-lg relative">
+              <Link
+                to={`/product/${product._id}`}
+                className="block mb-4 text-center text-blue-500 text-lg font-semibold"
+              >
+                {product.images && product.images.length > 0 ? (
+                  <img
+                    src={`http://localhost:3005/${product.images[0].url.replace(/\\/g, "/")}`}
+                    alt={product.images[0].alt || product.name}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                ) : (
+                  <img
+                    src="https://via.placeholder.com/150"
+                    alt="Placeholder"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                )}
+              </Link>
+              <h2 className="text-xl font-medium">{product.name}</h2>
+              <p className="text-lg text-gray-700 mt-2">
+                <strong>Price:</strong> ${product.price}
+              </p>
+  
+              {cart.includes(product._id.toString()) ? (
+                <button
+                  onClick={() => navigate("/cart")}
+                  className="absolute bottom-4 left-4 bg-green-500 text-white py-2 px-4 rounded-lg"
+                >
+                  Go to Cart <FontAwesomeIcon icon={faCartPlus} />
+                </button>
               ) : (
-                <img
-                  src="https://via.placeholder.com/150"
-                  alt="Placeholder"
-                  className="w-full h-48 object-cover rounded-lg"
-                />
+                <button
+                  onClick={() => addToCart(product._id)}
+                  className="absolute bottom-4 left-4 bg-blue-500 text-white py-2 px-4 rounded-lg"
+                >
+                  <FontAwesomeIcon icon={faCartPlus} />
+                </button>
               )}
-            </Link>
-            <h2 className="text-xl font-medium">{product.name}</h2>
-            <p className="text-lg text-gray-700 mt-2">
-              <strong>Price:</strong> ${product.price}
-            </p>
-
-            {cart.includes(product._id.toString()) ? (
-              <button
-                onClick={() => navigate("/cart")}
-                className="absolute bottom-4 left-4 bg-green-500 text-white py-2 px-4 rounded-lg"
-              >
-                Go to Cart <FontAwesomeIcon icon={faCartPlus} />
-              </button>
-            ) : (
-              <button
-                onClick={() => addToCart(product._id)}
-                className="absolute bottom-4 left-4 bg-blue-500 text-white py-2 px-4 rounded-lg"
-              >
-                <FontAwesomeIcon icon={faCartPlus} />
-              </button>
-            )}
-
-            {wishlist.includes(product._id.toString()) ? (
-              <button
-                onClick={() => removeFromWishlist(product._id)}
-                className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
-              >
-                <FontAwesomeIcon icon={faHeart} color="red" />
-              </button>
-            ) : (
-              <button
-                onClick={() => addToWishlist(product._id)}
-                className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
-              >
-                <FontAwesomeIcon icon={faHeart} color="gray" />
-              </button>
-            )}
-          </div>
-        ))}
+  
+              {wishlist.includes(product._id.toString()) ? (
+                <button
+                  onClick={() => removeFromWishlist(product._id)}
+                  className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
+                >
+                  <FontAwesomeIcon icon={faHeart} color="red" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => addToWishlist(product._id)}
+                  className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
+                >
+                  <FontAwesomeIcon icon={faHeart} color="gray" />
+                </button>
+              )}
+            </div>
+          ))}
       </div>
     </div>
   );
+  
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;

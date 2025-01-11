@@ -311,3 +311,92 @@ exports.getDashboardStats = async (req, res) => {
 };
 
 
+exports.requestToBecomeSeller = async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        // Validate if user exists
+        const user = await users.findById(userId);
+        if (!user) {
+            return res.status(404).send({
+                statusCode: 404,
+                message: "User not found",
+            });
+        }
+
+        // Check if the user is already a seller
+        const sellerType = await user_type.findOne({ user_type: "seller" });
+        if (user.user_type.toString() === sellerType._id.toString()) {
+            return res.status(400).send({
+                statusCode: 400,
+                message: "User is already a seller",
+            });
+        }
+
+        // Update user status to "pending approval"
+        user.status = "pending";
+        await user.save();
+
+        return res.status(200).send({
+            statusCode: 200,
+            message: "Request submitted successfully. Awaiting admin approval.",
+        });
+    } catch (error) {
+        console.error("Error in requestToBecomeSeller:", error);
+        return res.status(500).send({
+            statusCode: 500,
+            message: error.message || "Something went wrong",
+        });
+    }
+};
+
+
+exports.approveSellerRequest = async (req, res) => {
+    try {
+        const { userId, action } = req.body;
+
+        if (!["approve", "deny"].includes(action)) {
+            return res.status(400).send({
+                statusCode: 400,
+                message: "Invalid action. Use 'approve' or 'deny'.",
+            });
+        }
+
+        const user = await users.findById(userId).populate("user_type");
+        if (!user) {
+            return res.status(404).send({
+                statusCode: 404,
+                message: "User not found",
+            });
+        }
+
+        const sellerType = await user_type.findOne({ user_type: "seller" });
+
+        if (action === "approve") {
+            user.user_type = sellerType._id;
+            user.status = "active";
+        } else if (action === "deny") {
+            user.status = "active"; // Revert to active if denied
+        }
+
+        await user.save();
+
+        // Send notification email
+        const message = action === "approve"
+            ? "Congratulations! Your request to become a seller has been approved."
+            : "Your request to become a seller has been denied. Please contact support for further details.";
+
+        await sendEmail(user.email, "Seller Request Update", message);
+
+        return res.status(200).send({
+            statusCode: 200,
+            message: `User request ${action}ed successfully.`,
+        });
+    } catch (error) {
+        console.error("Error in approveSellerRequest:", error);
+        return res.status(500).send({
+            statusCode: 500,
+            message: error.message || "Something went wrong",
+        });
+    }
+};

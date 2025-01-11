@@ -18,6 +18,7 @@ import ProductsPage from './components/Brandpage';
 // src/index.js or src/App.js
 import AdminDashboard from './components/admin/adminHome';
 import './styles/tailwind.css';
+import ViewUserOrders from './components/myOrders';
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
 
         {/* fetch brand */}
         <Route path="/brands/:brand" element={<ProductsPage />} />
+        <Route path="/myorder" element ={<ViewUserOrders/>}/>
 
       </Routes>
     </Router>

@@ -10,6 +10,8 @@ router.get('/dashboard-stats',userController.getDashboardStats);
 
 
 router.patch('/users/:id/block', userController.blockUser);
+router.post('/request-seller/:id',userController.requestToBecomeSeller)
+router.post('/approve-rquest',userController.approveSellerRequest)
 
 
 module.exports=router

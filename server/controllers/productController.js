@@ -97,7 +97,7 @@ exports.getProducts = async function (req, res) {
         // Fetch the latest 10 products (New Arrivals)
         const latestProducts = await AddData.find(filter)
             .sort({ createdAt: -1 }) // Sort by creation date in descending order
-            .limit(5); // Limit to 10 records
+            .limit(4); // Limit to 10 records
 
         // Fetch all other products that match the filters
         const allProducts = await AddData.find(filter)

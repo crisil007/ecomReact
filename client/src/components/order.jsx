@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import jwt_decode from "jwt-decode";
-import "react-toastify/dist/ReactToastify.css"; // Ensure this is imported
+import "react-toastify/dist/ReactToastify.css";
 
 const OrderPage = () => {
   const location = useLocation();
@@ -62,32 +62,37 @@ const OrderPage = () => {
     const token = localStorage.getItem("token");
     if (!validateToken()) return;
 
-    try {
-      await axios.post(
-        "http://localhost:3005/createOrder",
+    const orderData = {
+      products: [
         {
-          products: [
-            {
-              productId: product._id,
-              selectedSize,
-              quantity,
-            },
-          ],
-          address,
-          total,
+          productId: product._id,
+          selectedSize,
+          quantity,
         },
+      ],
+      address,
+      total,
+    };
+
+    console.log("Order data being sent:", orderData); // Debugging
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3005/createOrder",
+        orderData,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      toast.success("Order placed successfully!");
+      toast.success("Order placed successfully! A confirmation email has been sent.");
 
-      // Delay navigation to allow toast to show
+      // Delay navigation to allow toast to display
       setTimeout(() => {
         navigate("/home");
-      }, 2000); // 2-second delay
+      }, 2000);
     } catch (error) {
+      console.error("Error placing order:", error.response?.data || error.message);
       toast.error(error.response?.data?.message || "Error placing order");
     }
   };
