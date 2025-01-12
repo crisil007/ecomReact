@@ -95,13 +95,12 @@ exports.getProducts = async function (req, res) {
         }
 
         // Fetch the latest 10 products (New Arrivals)
-        const latestProducts = await AddData.find(filter)
-            .sort({ createdAt: -1 }) // Sort by creation date in descending order
-            .limit(4); // Limit to 10 records
+        const latestProducts = await AddData.find(filter).sort({ createdAt: -1 }) .limit(4); 
+    
 
         // Fetch all other products that match the filters
         const allProducts = await AddData.find(filter)
-            .sort({ createdAt: -1 }); // Sort by creation date in descending order
+            .sort({ createdAt: 1 }); // Sort by creation date in descending order
 
         console.log("Filtered Latest Products:", latestProducts);
         console.log("Filtered All Products:", allProducts);

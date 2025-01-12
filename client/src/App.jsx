@@ -20,6 +20,7 @@ import AdminDashboard from './components/admin/adminHome';
 import './styles/tailwind.css';
 import ViewUserOrders from './components/myOrders';
 
+
 function App() {
   return (
     <Router>
@@ -39,6 +40,7 @@ function App() {
         <Route path='/order/:id' element={<OrderPage/>}/>
         <Route path='/users' element={<UserList/>}/>
         <Route path='/addproduct'element={<AddProduct/>}/>
+        <Route path='/seller/home'element={<ProductList/>}/>
 
 
 

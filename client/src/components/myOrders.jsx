@@ -82,17 +82,18 @@ const ViewUserOrders = () => {
                 <h5 className="font-semibold mb-2 text-gray-700">Products:</h5>
                 <ul className="space-y-4">
                   {order.products.map((product) => {
-                    // Ensure you have valid images
+                    // Ensure product.productId exists before accessing its properties
+                    const productId = product.productId || {};
                     const imageUrl =
-                      product.productId.images && product.productId.images[0]
-                        ? `http://localhost:3005/${product.productId.images[0].url.replace(/\\/g, "/")}`
+                      productId.images && productId.images[0]
+                        ? `http://localhost:3005/${productId.images[0].url.replace(/\\/g, "/")}`
                         : "https://via.placeholder.com/100";
 
                     // Log imageUrl for debugging
                     console.log("Image URL:", imageUrl);
 
                     return (
-                      <li key={product.productId._id} className="flex items-center">
+                      <li key={productId._id} className="flex items-center">
                         <img
                           src={imageUrl}
                           alt="Product"
@@ -103,17 +104,16 @@ const ViewUserOrders = () => {
                         />
                         <div>
                           <p className="text-gray-700 font-semibold">
-                            {product.productId.name}
+                            {productId.name || "Unknown Product"}
                           </p>
                           <p className="text-gray-500">
-                            Price: ${product.productId.price}
+                            Price: ${productId.price || "N/A"}
                           </p>
                           <p className="text-gray-500">
                             Quantity: {product.quantity}
                           </p>
                           <p className="text-gray-500">
-                            Subtotal: $
-                            {product.quantity * product.productId.price}
+                            Subtotal: ${product.quantity * (productId.price || 0)}
                           </p>
                         </div>
                       </li>
@@ -125,7 +125,7 @@ const ViewUserOrders = () => {
                   {order.totalPrice ||
                     order.products.reduce(
                       (sum, product) =>
-                        sum + product.quantity * product.productId.price,
+                        sum + product.quantity * (product.productId?.price || 0),
                       0
                     )}
                 </p>

@@ -225,67 +225,78 @@ const fetchWishlist = useCallback(async () => {
       <div className="flex flex-wrap justify-center gap-6">
         {products
           .filter((product) => !product.isBlocked) // Exclude blocked products
-          .map((product) => (
-            <div key={product._id} className="w-60 h-96 p-4 border rounded-lg shadow-lg relative">
-              <Link
-                to={`/product/${product._id}`}
-                className="block mb-4 text-center text-blue-500 text-lg font-semibold"
+          .map((product) => {
+            // Truncate name to 25 characters with ellipses if needed
+            const shortName = product.name.length > 25 ? product.name.slice(0, 25) + "..." : product.name;
+  
+            return (
+              <div
+                key={product._id}
+                className="w-60 h-96 p-4 border rounded-lg shadow-lg relative"
               >
-                {product.images && product.images.length > 0 ? (
-                  <img
-                    src={`http://localhost:3005/${product.images[0].url.replace(/\\/g, "/")}`}
-                    alt={product.images[0].alt || product.name}
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
+                <Link
+                  to={`/product/${product._id}`}
+                  className="block mb-4 text-center text-blue-500 text-lg font-semibold"
+                >
+                  {product.images && product.images.length > 0 ? (
+                    <img
+                      src={`http://localhost:3005/${product.images[0].url.replace(/\\/g, "/")}`}
+                      alt={product.images[0].alt || product.name}
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  ) : (
+                    <img
+                      src="https://via.placeholder.com/150"
+                      alt="Placeholder"
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  )}
+                </Link>
+                <h2 className="text-xl font-medium">{shortName}</h2>
+                <p className="text-lg text-gray-700 mt-2">
+                  <strong>Price:</strong>₹{product.price}
+                </p>
+  
+                {cart.includes(product._id.toString()) ? (
+                  <button
+                    onClick={() => navigate("/cart")}
+                    className="absolute bottom-4 left-4 bg-green-500 text-white py-2 px-4 rounded-lg"
+                  >
+                    Go to Cart <FontAwesomeIcon icon={faCartPlus} />
+                  </button>
                 ) : (
-                  <img
-                    src="https://via.placeholder.com/150"
-                    alt="Placeholder"
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
+                  <button
+                    onClick={() => addToCart(product._id)}
+                    className="absolute bottom-4 left-4 bg-blue-500 text-white py-2 px-4 rounded-lg"
+                  >
+                    <FontAwesomeIcon icon={faCartPlus} />
+                  </button>
                 )}
-              </Link>
-              <h2 className="text-xl font-medium">{product.name}</h2>
-              <p className="text-lg text-gray-700 mt-2">
-                <strong>Price:</strong> ${product.price}
-              </p>
   
-              {cart.includes(product._id.toString()) ? (
-                <button
-                  onClick={() => navigate("/cart")}
-                  className="absolute bottom-4 left-4 bg-green-500 text-white py-2 px-4 rounded-lg"
-                >
-                  Go to Cart <FontAwesomeIcon icon={faCartPlus} />
-                </button>
-              ) : (
-                <button
-                  onClick={() => addToCart(product._id)}
-                  className="absolute bottom-4 left-4 bg-blue-500 text-white py-2 px-4 rounded-lg"
-                >
-                  <FontAwesomeIcon icon={faCartPlus} />
-                </button>
-              )}
-  
-              {wishlist.includes(product._id.toString()) ? (
-                <button
-                  onClick={() => removeFromWishlist(product._id)}
-                  className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
-                >
-                  <FontAwesomeIcon icon={faHeart} color="red" />
-                </button>
-              ) : (
-                <button
-                  onClick={() => addToWishlist(product._id)}
-                  className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
-                >
-                  <FontAwesomeIcon icon={faHeart} color="gray" />
-                </button>
-              )}
-            </div>
-          ))}
+                {wishlist.includes(product._id.toString()) ? (
+                  <button
+                    onClick={() => removeFromWishlist(product._id)}
+                    className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
+                  >
+                    <FontAwesomeIcon icon={faHeart} color="red" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => addToWishlist(product._id)}
+                    className="absolute bottom-4 right-4 bg-gray-300 text-white p-2 rounded-full"
+                  >
+                    <FontAwesomeIcon icon={faHeart} color="gray" />
+                  </button>
+                )}
+              </div>
+            );
+          })}
       </div>
     </div>
   );
+  
+  
+  
   
 
   if (loading) return <div>Loading...</div>;

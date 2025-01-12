@@ -29,9 +29,9 @@ const CarouselComponent = () => {
 
     const carouselItems = [
         { image: '/images/caro1.jpg', title: 'Special Offer 1', description: 'Big sale on fashion items.' },
-        { image: '/images/caro4.jpg', title: 'Special Offer 2', description: 'Limited time offer for electronics.' },
-        { image: '/images/image3.jpg', title: 'Special Offer 3', description: 'Explore new arrivals in home decor.' },
-        { image: '/images/image4.jpg', title: 'Special Offer 4', description: 'Exclusive deals for members.' },
+        { image: '/images/caro8.jpg', title: 'Special Offer 2', description: 'Limited time offer for electronics.' },
+        { image: '/images/caro6.jpg', title: 'Special Offer 3', description: 'Explore new arrivals in home decor.' },
+        { image: '/images/caro7.jpg', title: 'Special Offer 4', description: 'Exclusive deals for members.' },
     ];
 
     const handleNext = () => {

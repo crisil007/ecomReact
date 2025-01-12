@@ -109,19 +109,16 @@ const ProductDetails = () => {
       },
     });
   };
-  
-  
-  
 
   const sizes = ['9', '8', '7', '6'];
 
   return (
     <>
       <NavBar />
-      <div className="product-details container mx-auto py-6 px-4">
+      <div className="product-details container mx-auto py-6 px-4 mt-16">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Product Image and Carousel */}
-          <div className="col-span-12 md:col-span-5 flex">
+          <div className="col-span-12 md:col-span-5 flex sticky top-16">
             <div className="flex flex-col items-start space-y-4 mr-4">
               {product.images && product.images.length > 0 && product.images.map((image, index) => (
                 <img
@@ -175,7 +172,7 @@ const ProductDetails = () => {
           </div>
 
           {/* Product Info Section */}
-          <div className="col-span-12 md:col-span-7">
+          <div className="col-span-12 md:col-span-7 overflow-y-auto max-h-screen">
             <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
             <p className="text-lg text-gray-500 mb-4">{product.category}</p>
             <p className="text-xl font-semibold text-gray-900 mb-4">₹{product.price}</p>

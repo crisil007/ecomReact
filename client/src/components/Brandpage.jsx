@@ -162,7 +162,7 @@ const ProductsPage = () => {
   const renderProductSection = (products, heading) => (
     <div className="my-10">
       <NavBar />
-      <h2 className="text-2xl font-bold mt-20 mb-6 text-center">{heading}</h2> {/* Add margin-top here */}
+      <h2 className="text-2xl font-bold mt-20 mb-6 text-center">{heading}</h2>
       <div className="flex flex-wrap justify-center gap-6">
         {products.map((product) => (
           <div key={product._id} className="w-60 h-96 p-4 border rounded-lg shadow-lg relative">
@@ -184,7 +184,10 @@ const ProductsPage = () => {
                 />
               )}
             </Link>
-            <h2 className="text-xl font-medium">{product.name}</h2>
+            {/* Slice product name to 20 characters */}
+            <h2 className="text-xl font-medium">
+              {product.name.slice(0, 20)} {product.name.length > 20 ? "..." : ""}
+            </h2>
             <p className="text-lg text-gray-700 mt-2">
               <strong>Price:</strong> ${product.price}
             </p>
@@ -225,6 +228,7 @@ const ProductsPage = () => {
       </div>
     </div>
   );
+  
   
 
   if (loading) return <div>Loading...</div>;

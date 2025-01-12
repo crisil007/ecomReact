@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import Footer from "./footer";
 import SellerNavBar from "./sellernav";
 
-
 const SellerHomePage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +18,6 @@ const SellerHomePage = () => {
       try {
         const storedUserData = localStorage.getItem("Data");
 
-        // Check if storedUserData exists and is valid
         if (!storedUserData) {
           alert("Please login to access your products.");
           navigate("/signin");
@@ -30,7 +28,6 @@ const SellerHomePage = () => {
         const token = parsedData?.token;
         const sellerId = parsedData?._id;
 
-        // Ensure sellerId and token are available
         if (!sellerId || !token) {
           alert("No valid seller ID or token found. Please login again.");
           navigate("/signin");
@@ -43,17 +40,16 @@ const SellerHomePage = () => {
           },
         };
 
-        // Fetch products using sellerId dynamically
         const response = await axios.get(`${backendUrl}/getProducts/${sellerId}`, config);
         if (response.data.success) {
-          setProducts(response.data.products || []); // Ensure fallback to empty array
+          setProducts(response.data.products || []);
         } else {
           setError(response.data.message);
         }
       } catch (err) {
         console.error(err);
         setError("Failed to fetch products. Please try again later.");
-        navigate('/add')
+        navigate("/add");
       } finally {
         setLoading(false);
       }
@@ -86,69 +82,64 @@ const SellerHomePage = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) return <div className="text-center text-lg mt-10">Loading...</div>;
+  if (error) return <div className="text-center text-red-500 text-lg mt-10">Error: {error}</div>;
 
   return (
     <>
       <SellerNavBar />
-    
-      <div>
-        <h1 style={{textAlign:"center",margin:"10px"}}>Seller Dashboard</h1>
-        {message && <div className="message">{message}</div>}
-        <div
-          className="containerr"
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "20px",
-            justifyContent: "center",
-          }}
-        >
+      <div className="mt-16">
+        <h1 className="text-3xl font-bold text-center mb-6">Seller Dashboard</h1>
+        {message && (
+          <div className="text-center text-green-600 font-medium mb-4">{message}</div>
+        )}
+
+        <div className="flex flex-wrap justify-center gap-8 px-4">
           {products.length > 0 ? (
             products.map((product) => (
               <div
                 key={product._id}
-                className="container-a"
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  width: "250px",
-                  height: "400px",
-                  textAlign: "center",
-                }}
+                className="w-64 bg-white border rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 flex flex-col items-center"
               >
                 {product.images && product.images.length > 0 ? (
                   <img
                     src={`${backendUrl}/${product.images[0].url.replace(/\\/g, "/")}`}
                     alt={product.images[0].alt || product.name}
-                    style={{ width: "100%", borderRadius: "5px", height: "200px" }}
+                    className="w-full h-40 object-cover rounded-md mb-4"
                   />
                 ) : (
                   <img
                     src="https://via.placeholder.com/150"
                     alt="Placeholder"
-                    style={{ width: "100%", borderRadius: "8px" }}
+                    className="w-full h-40 object-cover rounded-md mb-4"
                   />
                 )}
 
-                <h2>{product.name}</h2>
-                <p>
+                <h2 className="text-lg font-semibold mb-2">
+                  {product.name.slice(0, 20)}{product.name.length > 20 ? "..." : ""}
+                </h2>
+                <p className="text-gray-700 mb-4">
                   <strong>Price:</strong> ${product.price}
                 </p>
 
-                <div style={{ display: "flex", justifyContent: "space-around", marginTop: "10px" }}>
-                  <Link to={`/edit-product/${product._id}`} className="button-a">
+                <div className="flex gap-4">
+                  <Link
+                    to={`/edit-product/${product._id}`}
+                    className="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition"
+                  >
                     Update
                   </Link>
-                  <button className="button-a" onClick={() => deleteProduct(product._id)}>
+                  <button
+                    onClick={() => deleteProduct(product._id)}
+                    className="px-4 py-2 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition"
+                  >
                     Delete
                   </button>
                 </div>
               </div>
             ))
           ) : (
-            <div>No products found.</div>
+            <div className="text-center text-lg text-gray-700">No products found.</div>
           )}
         </div>
       </div>
