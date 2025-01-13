@@ -19,7 +19,7 @@ router.post('/addProduct/:id',  productController.addProducts);
 router.get('/getProducts', productController.getProducts);
 router.get('/getProducts/:sellerId', productController.getProductsBySeller);
 router.get('/product/:id',productController.viewSingleProduct);
-
+router.delete('/deleteProduct/:sellerId/:productId', productController.deleteProduct);
 
 router.patch("/products/:id/status" , productController.blockproducts);
 router.get("/brands",productController.fetchBrands)

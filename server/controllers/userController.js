@@ -6,6 +6,32 @@ const { success_function, error_function } = require("../utils/responseHandler")
 const mongoose = require("mongoose");
 const fileUpload=require("../utils/fileUpload").fileUpload;
 const category = require('../db/models/category');
+const UpgradeRequest=require('../db/models/upgradeRequest')
+
+const jwt = require('jsonwebtoken');
+
+const authenticate = (req, res, next) => {
+    const authorizationHeader = req.header('Authorization');
+    console.log("Authorization Header:", authorizationHeader);
+
+    // Extract token from header
+    const token = authorizationHeader?.replace(/^Bearer\s+/i, '').trim();
+    console.log("Extracted Token:", token);
+
+    if (!token) {
+        return res.status(401).json({ message: "No token provided. Please log in." });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.PRIVATE_KEY);
+        req.user = { id: decoded.user_id }; // Add user ID to the request
+        console.log("Decoded User ID:", req.user.id);
+        next(); // Proceed to the next middleware/controller
+    } catch (error) {
+        console.error("Token Verification Error:", error.message);
+        return res.status(401).json({ message: 'Invalid or expired token.' });
+    }
+};
 
 exports.createuser = async (req, res) => {
     try {
@@ -311,92 +337,94 @@ exports.getDashboardStats = async (req, res) => {
 };
 
 
-exports.requestToBecomeSeller = async (req, res) => {
+exports.requestUpgrade =[authenticate, async (req, res) => {
+    try { const userId = req.user.id;
+        const { companyName, license } = req.body;
+        const newRequest = new UpgradeRequest({ userId, companyName, license, status: 'pending' });
+        const savedRequest = await newRequest.save();
+        res.status(201).send({ message: 'Upgrade request submitted successfully', data: savedRequest });
+    } 
+    catch (error) {
+         res.status(500).send({ message: 'Something went wrong', error: error.message });
+    } 
+}];
+
+// approve upgrade
+exports.approveupgrade = async (req, res) => {
     try {
-        const userId = req.params.id;
+        const { userId } = req.params;
 
-        // Validate if user exists
-        const user = await users.findById(userId);
+        // Log the userId for debugging
+        console.log('Received userId:', userId);
+        console.log('Request params:', req.params);  // Log entire request params for debugging
+
+        // Ensure userId matches correctly and query the UpgradeRequest collection
+        const request = await UpgradeRequest.findOne({ userId: String(userId) });
+
+        if (!request) {
+            console.log('No request found with userId:', userId);
+            return res.status(404).json({ message: 'Request not found' });
+        }
+
+        // Update request status
+        request.status = 'approved';
+        await request.save();
+
+        // Find the seller type from user_type collection
+        const sellerType = await user_type.findOne({ user_type: 'seller' });
+        if (!sellerType) {
+            return res.status(400).json({ message: "Seller user type not found" });
+        }
+
+        // Update the user to have the 'seller' role
+        const user = await users.findOneAndUpdate(
+            { _id: new mongoose.Types.ObjectId(userId) }, // Correctly using ObjectId
+            { user_type: sellerType._id },  // Assign the correct ObjectId for 'seller' user type
+            { new: true }
+        );
+
         if (!user) {
-            return res.status(404).send({
-                statusCode: 404,
-                message: "User not found",
-            });
+            console.log('User not found with userId:', userId);
+            return res.status(404).json({ message: 'User not found' });
         }
 
-        // Check if the user is already a seller
-        const sellerType = await user_type.findOne({ user_type: "seller" });
-        if (user.user_type.toString() === sellerType._id.toString()) {
-            return res.status(400).send({
-                statusCode: 400,
-                message: "User is already a seller",
-            });
+        // Prepare upgrade details for email
+        const upgradeDetails = {
+            upgradeType: 'Manual Upgrade from Admin',  // You can change this depending on the upgrade type
+        };
+
+        // Try sending the email
+        try {
+            const emailTemplate = await BuyerUpgarde(user.name, upgradeDetails);
+            await sendemail(user.email, 'Seller Upgrade Notification', emailTemplate);
+            console.log('Email sent successfully.');
+        } catch (emailError) {
+            console.error('Error sending email:', emailError);
         }
 
-        // Update user status to "pending approval"
-        user.status = "pending";
-        await user.save();
-
-        return res.status(200).send({
-            statusCode: 200,
-            message: "Request submitted successfully. Awaiting admin approval.",
-        });
+        // Send the updated user information back
+        res.status(200).json({ message: 'Request approved and role updated successfully', user });
     } catch (error) {
-        console.error("Error in requestToBecomeSeller:", error);
-        return res.status(500).send({
-            statusCode: 500,
-            message: error.message || "Something went wrong",
-        });
+        console.error(error);
+        res.status(500).json({ message: 'An error occurred', error });
     }
 };
 
 
-exports.approveSellerRequest = async (req, res) => {
-    try {
-        const { userId, action } = req.body;
 
-        if (!["approve", "deny"].includes(action)) {
-            return res.status(400).send({
-                statusCode: 400,
-                message: "Invalid action. Use 'approve' or 'deny'.",
-            });
-        }
 
-        const user = await users.findById(userId).populate("user_type");
-        if (!user) {
-            return res.status(404).send({
-                statusCode: 404,
-                message: "User not found",
-            });
-        }
 
-        const sellerType = await user_type.findOne({ user_type: "seller" });
 
-        if (action === "approve") {
-            user.user_type = sellerType._id;
-            user.status = "active";
-        } else if (action === "deny") {
-            user.status = "active"; // Revert to active if denied
-        }
 
-        await user.save();
 
-        // Send notification email
-        const message = action === "approve"
-            ? "Congratulations! Your request to become a seller has been approved."
-            : "Your request to become a seller has been denied. Please contact support for further details.";
 
-        await sendEmail(user.email, "Seller Request Update", message);
-
-        return res.status(200).send({
-            statusCode: 200,
-            message: `User request ${action}ed successfully.`,
-        });
-    } catch (error) {
-        console.error("Error in approveSellerRequest:", error);
-        return res.status(500).send({
-            statusCode: 500,
-            message: error.message || "Something went wrong",
-        });
-    }
-};
+//view request upgrades
+exports.getAllUpgradeRequests =[authenticate, async (req, res) => { 
+    try { 
+        const requests = await UpgradeRequest.find().populate('userId', 'name email'); 
+        res.status(200).send({ message: 'Upgrade requests fetched successfully', data: requests });
+    } 
+    catch (error) 
+    { res.status(500).send({ message: 'Something went wrong', error: error.message }); 
+    } 
+}];

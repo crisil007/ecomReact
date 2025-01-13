@@ -175,7 +175,50 @@ exports.getProductsBySeller = async (req, res) => {
     }
   };
   
-  
+  exports.deleteProduct = async function (req, res) {
+    try {
+        // Log the product ID and seller ID for debugging
+        console.log("Product ID:", req.params.productId);
+        console.log("Seller ID:", req.params.sellerId);
+
+        const { productId, sellerId } = req.params;
+
+        // Validate product ID
+        if (!productId) {
+            return res.status(400).send({ success: false, message: "Product ID is required" });
+        }
+
+        // Validate seller ID
+        if (!sellerId) {
+            return res.status(400).send({ success: false, message: "Seller ID is required" });
+        }
+
+        // Check if the product exists and belongs to the seller
+        const product = await AddData.findOne({ _id: productId, sellerID: sellerId });
+
+        if (!product) {
+            return res.status(404).send({
+                success: false,
+                message: "Product not found or you do not have permission to delete this product",
+            });
+        }
+
+        // Delete the product
+        await AddData.deleteOne({ _id: productId });
+
+        return res.status(200).send({
+            success: true,
+            message: "Product deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        return res.status(500).send({
+            success: false,
+            message: "Product deletion failed, please try again.",
+        });
+    }
+};
+
 // Function to fetch categories
 exports.fetchCategories = async function (req, res) {
     try {

@@ -18,23 +18,22 @@ export default function NavBar() {
   }, []);
 
   // Fetch brands from the backend
-  // Fetch brands from the backend
-useEffect(() => {
-  const fetchBrands = async () => {
+  useEffect(() => {
+    const fetchBrands = async () => {
       try {
-          const response = await fetch("http://localhost:3005/brands"); // No query params
-          const data = await response.json();
-          if (data.success) {
-              setBrands(data.data.brands);
-          } else {
-              console.error("Failed to fetch brands:", data.message);
-          }
+        const response = await fetch("http://localhost:3005/brands");
+        const data = await response.json();
+        if (data.success) {
+          setBrands(data.data.brands);
+        } else {
+          console.error("Failed to fetch brands:", data.message);
+        }
       } catch (error) {
-          console.error("Error fetching brands:", error);
+        console.error("Error fetching brands:", error);
       }
-  };
-  fetchBrands();
-}, []);
+    };
+    fetchBrands();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("Data");
@@ -47,9 +46,8 @@ useEffect(() => {
     try {
       const response = await fetch(`http://localhost:3005/brands?brand=${encodeURIComponent(brand)}`);
       const data = await response.json();
-  
+
       if (data.success) {
-        // Navigate using /brands/:brand route instead of query params
         navigate(`/brands/${encodeURIComponent(brand)}`, { state: { products: data.data.products } });
       } else {
         console.error("Failed to fetch products:", data.message);
@@ -59,10 +57,6 @@ useEffect(() => {
     }
     setIsBrandDropdownOpen(false);
   };
-  
-
-
-  
 
   return (
     <nav className="bg-blue-600 text-white shadow-md w-full z-20 fixed top-0">
@@ -130,6 +124,12 @@ useEffect(() => {
                         onClick={() => navigate("/myorder")}
                       >
                         My Orders
+                      </li>
+                      <li
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => navigate("/upgrade-request")}
+                      >
+                        Become Seller
                       </li>
                     </>
                   ) : (

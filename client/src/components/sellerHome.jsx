@@ -59,28 +59,52 @@ const SellerHomePage = () => {
   }, [navigate]);
 
   // Delete product
-  const deleteProduct = async (productId) => {
-    try {
-      const storedUserData = localStorage.getItem("Data");
-      const token = JSON.parse(storedUserData).token;
+// Delete product
+const deleteProduct = async (productId) => {
+  try {
+    const storedUserData = localStorage.getItem("Data");
 
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      const response = await axios.delete(`${backendUrl}/product/${productId}`, config);
-      if (response.data.success) {
-        setProducts(products.filter((product) => product._id !== productId));
-        setMessage("Product deleted successfully.");
-      } else {
-        setMessage(response.data.message);
-      }
-    } catch (error) {
-      setMessage("Failed to delete product. Please try again later.");
+    if (!storedUserData) {
+      alert("Please login to perform this action.");
+      navigate("/signin");
+      return;
     }
-  };
+
+    const parsedData = JSON.parse(storedUserData);
+    const token = parsedData?.token;
+    const sellerId = parsedData?._id;
+
+    if (!sellerId || !token) {
+      alert("Invalid credentials. Please login again.");
+      navigate("/signin");
+      return;
+    }
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    // Make the delete request
+    const response = await axios.delete(
+      `${backendUrl}/deleteProduct/${sellerId}/${productId}`,
+      config
+    );
+
+    if (response.data.success) {
+      // Remove the deleted product from the state
+      setProducts(products.filter((product) => product._id !== productId));
+      setMessage("Product deleted successfully.");
+    } else {
+      setMessage(response.data.message);
+    }
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    setMessage("Failed to delete product. Please try again later.");
+  }
+};
+
 
   if (loading) return <div className="text-center text-lg mt-10">Loading...</div>;
   if (error) return <div className="text-center text-red-500 text-lg mt-10">Error: {error}</div>;

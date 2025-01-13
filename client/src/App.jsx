@@ -15,10 +15,12 @@ import ProductList from './components/sellermain';
 import UserList from './components/admin/viewUsers';
 import UserView from './components/admin/viewSingleuser';
 import ProductsPage from './components/Brandpage';
-// src/index.js or src/App.js
+import UpgradeRequest from './components/upgrade';
 import AdminDashboard from './components/admin/adminHome';
 import './styles/tailwind.css';
 import ViewUserOrders from './components/myOrders';
+import ManageUpgradeRequests from './components/admin/requests';
+// import OrderPage from './components/order';
 
 
 function App() {
@@ -41,6 +43,7 @@ function App() {
         <Route path='/users' element={<UserList/>}/>
         <Route path='/addproduct'element={<AddProduct/>}/>
         <Route path='/seller/home'element={<ProductList/>}/>
+        {/* <Route path='/ordersucess'element={<OrderPage/>}/> */}
 
 
 
@@ -54,6 +57,10 @@ function App() {
         {/* fetch brand */}
         <Route path="/brands/:brand" element={<ProductsPage />} />
         <Route path="/myorder" element ={<ViewUserOrders/>}/>
+
+
+        <Route path="/upgrade-request" element={<UpgradeRequest/>}/>
+        <Route path ="/admin/requests" element={<ManageUpgradeRequests/>}/>
 
       </Routes>
     </Router>

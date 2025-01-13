@@ -52,9 +52,19 @@ const Cart = () => {
     fetchCartItems();
   }, [navigate]);
 
-  const handleBuyNow = (productId) => {
-    navigate(`/order/${productId}`);
+  const handleBuyNow = (item) => {
+    if (item.productId && item.productId._id) {
+      navigate(`/order/${item.productId._id}`, {
+        state: {
+          product: item.productId,
+          quantity: item.quantity, // Passing the quantity
+        },
+      });
+    } else {
+      console.error("Product ID is missing", item);
+    }
   };
+  
 
   if (loading) {
     return (
@@ -114,11 +124,12 @@ const Cart = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => handleBuyNow(item.productId._id)}
-                  className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-                >
-                  Buy Now
-                </button>
+  onClick={() => handleBuyNow(item)}
+  className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+>
+  Buy Now
+</button>
+
               </div>
             ))}
           </div>

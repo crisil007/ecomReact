@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import jwt_decode from "jwt-decode";
-
+import Footer from "./footer";
 import NavBar from "./nav";
 
 const ProductDetails = () => {
@@ -253,6 +253,7 @@ const ProductDetails = () => {
           </div>
         </div>
       </div>
+      <Footer/>
     </>
   );
 };
