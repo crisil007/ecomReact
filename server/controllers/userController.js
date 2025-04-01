@@ -109,8 +109,8 @@ exports.createuser = async (req, res) => {
 };
 exports.getAllUsers = async (req, res) => {
     try {
-        // Fetch all users and populate the 'user_type' field to include user type details
-        const Users = await users.find().populate('user_type', 'user_type'); // Adjust fields to populate as needed
+        
+        const Users = await users.find().populate('user_type', 'user_type');
 
         if (Users.length === 0) {
             return res.status(404).send({
@@ -170,10 +170,10 @@ exports.getUserById = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        const userId = req.params.id; // Extract User ID from request parameters
-        const body = req.body; // Updated fields from the request body
+        const userId = req.params.id;
+        const body = req.body; 
 
-        // Validate User ID
+      
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).send({
                 statusCode: 400,
@@ -181,7 +181,7 @@ exports.updateUser = async (req, res) => {
             });
         }
 
-        // Ensure there is data to update
+      
         if (!body || Object.keys(body).length === 0) {
             return res.status(400).send({
                 statusCode: 400,
@@ -189,7 +189,7 @@ exports.updateUser = async (req, res) => {
             });
         }
 
-        // Validate email format
+      
         if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
             return res.status(400).send({
                 statusCode: 400,
@@ -197,7 +197,7 @@ exports.updateUser = async (req, res) => {
             });
         }
 
-        // Validate password length
+      
         if (body.password && body.password.length < 8) {
             return res.status(400).send({
                 statusCode: 400,
@@ -205,13 +205,13 @@ exports.updateUser = async (req, res) => {
             });
         }
 
-        // If updating password, hash it
+        
         if (body.password) {
             const salt = bcrypt.genSaltSync(10);
             body.password = bcrypt.hashSync(body.password, salt);
         }
 
-        // Validate user_type and convert it to ObjectId
+       
         if (body.user_type) {
             const userType = await user_type.findOne({ _id: body.user_type });
             if (!userType) {
@@ -223,7 +223,7 @@ exports.updateUser = async (req, res) => {
             body.user_type = userType._id; // Ensure it's the correct ObjectId
         }
 
-        // Perform the update operation
+       
  const updatedUser = await users.findByIdAndUpdate(userId, body, { new: true }).populate('user_type', 'user_type'); // Populate user_type for clarity
 
         if (!updatedUser) {
@@ -260,10 +260,7 @@ exports.blockUser = async (req, res) => {
             });
         }
 
-        // Find the user by ID
-        const user = await users.findById(userId);
-
-        // If the user doesn't exist, return an error
+           const user = await users.findById(userId);
         if (!user) {
             return res.status(404).send({
                 statusCode: 404,
@@ -271,7 +268,7 @@ exports.blockUser = async (req, res) => {
             });
         }
 
-        // If action is 'block', set the status to 'blocked'
+      
         if (action === 'block') {
             user.status = 'blocked';
         } else if (action === 'unblock') {
@@ -281,7 +278,7 @@ exports.blockUser = async (req, res) => {
         // Save the updated user object
         await user.save();
 
-        // Return a success response
+       
         return res.status(200).send({
             statusCode: 200,
             message: `User ${action}ed successfully`,
@@ -349,16 +346,13 @@ exports.requestUpgrade =[authenticate, async (req, res) => {
     } 
 }];
 
-// approve upgrade
+
 exports.approveupgrade = async (req, res) => {
     try {
         const { userId } = req.params;
-
-        // Log the userId for debugging
         console.log('Received userId:', userId);
-        console.log('Request params:', req.params);  // Log entire request params for debugging
-
-        // Ensure userId matches correctly and query the UpgradeRequest collection
+        console.log('Request params:', req.params);  
+        
         const request = await UpgradeRequest.findOne({ userId: String(userId) });
 
         if (!request) {
@@ -366,20 +360,20 @@ exports.approveupgrade = async (req, res) => {
             return res.status(404).json({ message: 'Request not found' });
         }
 
-        // Update request status
+      
         request.status = 'approved';
         await request.save();
 
-        // Find the seller type from user_type collection
+      
         const sellerType = await user_type.findOne({ user_type: 'seller' });
         if (!sellerType) {
             return res.status(400).json({ message: "Seller user type not found" });
         }
 
-        // Update the user to have the 'seller' role
+  
         const user = await users.findOneAndUpdate(
-            { _id: new mongoose.Types.ObjectId(userId) }, // Correctly using ObjectId
-            { user_type: sellerType._id },  // Assign the correct ObjectId for 'seller' user type
+            { _id: new mongoose.Types.ObjectId(userId) },
+            { user_type: sellerType._id },  
             { new: true }
         );
 
@@ -388,12 +382,12 @@ exports.approveupgrade = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Prepare upgrade details for email
+     
         const upgradeDetails = {
-            upgradeType: 'Manual Upgrade from Admin',  // You can change this depending on the upgrade type
+            upgradeType: 'Manual Upgrade from Admin', 
         };
 
-        // Try sending the email
+        
         try {
             const emailTemplate = await BuyerUpgarde(user.name, upgradeDetails);
             await sendemail(user.email, 'Seller Upgrade Notification', emailTemplate);
