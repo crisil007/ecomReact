@@ -36,7 +36,7 @@ exports.addProducts = async function (req, res) {
             });
         }
 
-        // Handle base64-encoded images
+       
         let images = [];
         if (req.body.images && Array.isArray(req.body.images)) {
             images = await uploadBase64Images(req.body.images, sellerID, req.body.altText);
@@ -44,17 +44,17 @@ exports.addProducts = async function (req, res) {
             return res.status(400).send({ success: false, message: "No images provided" });
         }
 
-        // Validate stock
+        
         if (typeof req.body.stock !== "number" || req.body.stock < 0) {
             return res.status(400).send({ success: false, message: "Invalid stock value" });
         }
 
-        // Validate brand
+       
         if (!req.body.brand || typeof req.body.brand !== "string") {
             return res.status(400).send({ success: false, message: "Brand is required and must be a string" });
         }
 
-        // Create the new product
+       
         const newProduct = new AddData({
             sellerID,
             name: req.body.name,
@@ -80,18 +80,18 @@ exports.addProducts = async function (req, res) {
 
 exports.getProducts = async function (req, res) {
     try {
-        // Extract category and brand from query parameters
+        
         const { category, brand } = req.query;
 
         // Create a filter object
-        let filter = { status: { $ne: "blocked" } }; // Exclude blocked products
+        let filter = { status: { $ne: "blocked" } }; 
 
         if (category) {
-            filter.category = category; // Filter by category if provided
+            filter.category = category; 
         }
 
         if (brand) {
-            filter.brand = brand; // Filter by brand if provided
+            filter.brand = brand; 
         }
 
         // Fetch the latest 10 products (New Arrivals)
@@ -100,7 +100,7 @@ exports.getProducts = async function (req, res) {
 
         // Fetch all other products that match the filters
         const allProducts = await AddData.find(filter)
-            .sort({ createdAt: 1 }); // Sort by creation date in descending order
+            .sort({ createdAt: 1 }); 
 
         console.log("Filtered Latest Products:", latestProducts);
         console.log("Filtered All Products:", allProducts);
@@ -155,9 +155,9 @@ exports.viewSingleProduct=async function (req,res) {
         console.log("error : ", error);
         res.status(400).send(error.message ? error.message : error);
     }
-}// 
+}
 
-// Controller method for getting products by seller
+
 exports.getProductsBySeller = async (req, res) => {
     try {
       const sellerId = req.params.sellerId;
@@ -170,7 +170,7 @@ exports.getProductsBySeller = async (req, res) => {
   
       return res.status(200).json({ success: true, products });
     } catch (error) {
-      console.error("Error fetching products:", error); // Log error details
+      console.error("Error fetching products:", error); 
       return res.status(500).json({ message: "Server error", error });
     }
   };
@@ -193,7 +193,7 @@ exports.getProductsBySeller = async (req, res) => {
             return res.status(400).send({ success: false, message: "Seller ID is required" });
         }
 
-        // Check if the product exists and belongs to the seller
+        
         const product = await AddData.findOne({ _id: productId, sellerID: sellerId });
 
         if (!product) {
@@ -203,7 +203,7 @@ exports.getProductsBySeller = async (req, res) => {
             });
         }
 
-        // Delete the product
+      
         await AddData.deleteOne({ _id: productId });
 
         return res.status(200).send({
@@ -219,7 +219,7 @@ exports.getProductsBySeller = async (req, res) => {
     }
 };
 
-// Function to fetch categories
+
 exports.fetchCategories = async function (req, res) {
     try {
         const categories = await category.find({}, { category: 1, _id: 0 });
@@ -235,14 +235,13 @@ exports.fetchCategories = async function (req, res) {
     }
 };
 
-// Function to fetch products for a specific brand
-// Updated fetchBrands function in the backend
+
 exports.fetchBrands = async function (req, res) {
     try {
         const { brand } = req.query;
 
         if (brand) {
-            // Fetch products of a specific brand
+          
             const products = await AddData.find({ brand });
             return res.status(200).send({
                 success: true,
@@ -250,7 +249,7 @@ exports.fetchBrands = async function (req, res) {
                 data: { products },
             });
         } else {
-            // Fetch all unique brands
+           
             const brands = await AddData.distinct("brand");
             return res.status(200).send({
                 success: true,
@@ -269,7 +268,7 @@ exports.fetchBrands = async function (req, res) {
 
 exports.blockproducts = async (req, res) => {
     try {
-        const productId = req.params.id; // Extract product ID from request parameters
+        const productId = req.params.id; 
         const product = await AddData.findById(productId);
 
         if (!product) {
@@ -279,11 +278,11 @@ exports.blockproducts = async (req, res) => {
             });
         }
 
-        // Toggle the product's status
+        
         const newStatus = product.status === "active" ? "blocked" : "active";
         product.status = newStatus;
 
-        // Save the updated product
+       
         await product.save();
 
         return res.status(200).send({
